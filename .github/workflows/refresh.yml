@@ -1,0 +1,25 @@
+name: Daily market-data refresh
+on:
+  schedule:
+    # Weekdays after the US market close (21:30 UTC ≈ 17:30 ET)
+    - cron: "30 21 * * 1-5"
+  workflow_dispatch:
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Refresh ETF history (Nasdaq) + news snapshot (Fed/ECB/CNBC)
+        run: |
+          python3 scripts/fetch_history.py
+          python3 scripts/refresh_news.py
+      - name: Commit updated snapshots
+        run: |
+          git config user.name "etf-bot"
+          git config user.email "etf-bot@users.noreply.github.com"
+          git add data/history data/news-daily.json
+          git diff --cached --quiet || git commit -m "Daily market data refresh"
+          git push
