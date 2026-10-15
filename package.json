@@ -1,0 +1,24 @@
+{
+  "name": "website-",
+  "version": "1.0.0",
+  "description": "Personal portfolio site tracking the **500 largest US-listed ETFs**: live prices + daily performance on the home page, a news page mapping headlines to ETFs, an ETF comparison tool (1W / 1M / 1Y / 5Y) and a 3-scenario 12-month forecast page.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piraflorentin/Pira-Capital.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/piraflorentin/Pira-Capital/issues"
+  },
+  "homepage": "https://github.com/piraflorentin/Pira-Capital#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
