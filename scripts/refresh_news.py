@@ -14,6 +14,11 @@ FEEDS = {
     "cnbc": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
 }
 LIMIT = {"fed": 10, "ecb": 10, "cnbc": 15}
+# Most-held ETFs get a daily web-news scan (Google News RSS, no key needed)
+ETF_SCAN = ["SPY", "QQQ", "VOO", "VTI", "DIA", "IWM", "QQQM", "SCHD", "VIG", "JEPI",
+            "TLT", "IEF", "SHY", "VGSH", "AGG", "BND", "LQD", "HYG", "TIP", "MUB",
+            "GLD", "IAU", "SLV", "USO", "UNG", "XLE", "XLK", "XLF", "XLV", "SOXX",
+            "VNQ", "EEM", "VWO", "EFA", "VEA", "EWJ", "FXI", "ARKK", "TQQQ", "IBIT"]
 
 
 def clean(s):
@@ -50,6 +55,32 @@ def main():
             print(name, "FAILED:", e)
             out["sources"][name] = []
         time.sleep(1)
+    # per-ETF web scan
+    etfnews = {}
+    for t in ETF_SCAN:
+        try:
+            q = urllib.parse.quote(f"{t} ETF")
+            url = (f"https://news.google.com/rss/search?q={q}"
+                   "&hl=en-US&gl=US&ceid=US%3Aen")
+            req = urllib.request.Request(url, headers=UA)
+            with urllib.request.urlopen(req, timeout=30) as r:
+                root = ET.fromstring(r.read())
+            items = []
+            for it in list(root.iter("item"))[:8]:
+                def txt(tag):
+                    el = it.find(tag)
+                    return clean(el.text) if el is not None and el.text else ""
+                src = it.find("source")
+                items.append({"title": txt("title"), "link": txt("link"),
+                              "date": txt("pubDate"),
+                              "outlet": clean(src.text) if src is not None else ""})
+            etfnews[t] = [x for x in items if x["title"]]
+            print(t, len(etfnews[t]))
+        except Exception as e:
+            print(t, "FAILED:", e)
+            etfnews[t] = []
+        time.sleep(1)
+    out["etf"] = etfnews
     fp = os.path.join(BASE, "data", "news-daily.json")
     json.dump(out, open(fp, "w"))
     print("wrote", fp)

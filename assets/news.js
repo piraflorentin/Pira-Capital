@@ -80,7 +80,13 @@ function rulesFor(t){
 function storyForETF(s,labels){
   return impacts(s.title,s.desc).filter(r=>labels.indexOf(r.label)>=0);
 }
-function renderETFNews(t){
+async function webFor(t){
+  try{
+    const j=await (await fetch("data/news-daily.json",{cache:"no-store"})).json();
+    return {items:((j.etf||{})[t]||[]), asof:j.asof||""};
+  }catch(e){ return {items:[],asof:""}; }
+}
+async function renderETFNews(t){
   const box=$("#etfnews");
   const found=rulesFor(t);
   if(!found){box.innerHTML="<p class='muted'>ETF not found — pick from the suggestions.</p>";return;}
@@ -95,6 +101,20 @@ function renderETFNews(t){
       <div class="meta">${x.s.date||""} · <span class="pill info">${r.label}</span></div>
       <p class="small" style="margin:6px 0 0"><b>What it means for ${found.e.t}:</b> ${r.why}</p></div>`;
   }).join(""):`<p class="small muted">No current headline directly targets ${found.e.t} — a calm week for this fund. The full list below still applies indirectly (broad market moves lift or drag almost everything).</p>`;
+  box.innerHTML=html+"<p class='small muted'>Scanning the web for the latest on "+t+"…</p>";
+  const web=await webFor(t);
+  if(web.items.length){
+    html+=`<h3 style="margin-top:14px">🌐 Across the web: latest on ${t} <span class="pill info">scanned daily · ${web.asof}</span></h3>`;
+    html+=web.items.slice(0,8).map(w=>{
+      const m=impacts(w.title,""), tag=m.length?m[0]:null;
+      const why=tag?tag.why:"Worth a read for sentiment and flows — check whether it changes the earnings, rate or risk outlook above.";
+      return `<div class="story"><h3><a href="${w.link}" target="_blank" rel="noopener">${w.title}</a></h3>
+        <div class="meta">${w.outlet||"web"} · ${w.date||""}${tag?` · <span class="pill info">${tag.label}</span>`:""}</div>
+        <p class="small" style="margin:6px 0 0"><b>What it means for ${found.e.t}:</b> ${why}</p></div>`;
+    }).join("");
+  }else{
+    html+=`<p class="small muted">Web scan covers the 40 most-held ETFs and refreshes daily — ${t} will be included once its scan runs. The feed matches above already apply.</p>`;
+  }
   box.innerHTML=html;
   try{localStorage.setItem("pira-etf",t);}catch(e){}
 }
