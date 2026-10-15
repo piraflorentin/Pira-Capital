@@ -4,8 +4,8 @@
    then paste the project's URL + anon key below and redeploy. */
 (function(){
 "use strict";
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
+const SUPABASE_URL = "https://rbaqboimydrqryhrivvb.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_D3Wgv4EB13eMbfDen4Bj_A_KEz1RuWa";
 const ENABLED = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 const LS_KEYS = ["pira-favs", "pira-compare", "pira-etf"];
 let sb = null, user = null;

@@ -9,3 +9,5 @@ alter table user_state enable row level security;
 drop policy if exists "own state only" on user_state;
 create policy "own state only" on user_state
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+grant usage on schema public to anon, authenticated;
+grant all on table user_state to authenticated;
