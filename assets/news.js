@@ -111,7 +111,47 @@ const DIRS={
 const LENS={
  "Staples":"Staples twist: this fund is defensive — expect it to fall less in sell-offs and rise less in rallies. Strong growth news is mildly negative for its relative edge.",
  "Utilities":"Utilities twist: regulated earnings and high dividends make it bond-like — it cheers rate cuts, suffers rate spikes, and mostly ignores the economic cycle.",
- "Health Care":"Health-care twist: demand holds up even in recessions, cushioning drawdowns — drug-pricing politics, not GDP, is the real swing factor."};
+ "Health Care":"Health-care twist: demand holds up even in recessions, cushioning drawdowns — drug-pricing politics, not GDP, is the real swing factor.",
+ "US Total Market":"Total-market lens: {T} IS the market — the theme lands on it directly, averaged across every stock. No hiding, no leverage.",
+ "US Large Cap":"Large-cap lens: {T} mirrors the giants almost tick-for-tick — the theme reaches it through earnings and multiples, not stock-picking.",
+ "US Mid Cap":"Mid-cap lens: more economic torque than large caps in both directions — rallies run hotter, drawdowns cut deeper.",
+ "US Small Cap":"Small-cap lens: feels the theme first and hardest — credit conditions decide whether it joins the move or sinks.",
+ "Nasdaq 100":"Nasdaq lens: mega-cap tech concentrates the effect — multiples stretch every move in both directions.",
+ "Growth":"Growth lens: stretched multiples amplify — good news compounds here, scares get punished harder than in value.",
+ "Value":"Value lens: cheaper multiples cushion multiple-scares — earnings cuts still bite, but valuation panics hurt less.",
+ "Dividend":"Income lens: only stories touching payouts or competing yields truly matter — price wiggles are secondary.",
+ "Covered Call":"Covered-call lens: banked premium caps the upside — rallies lift it less, small drops get cushioned.",
+ "Equal Weight":"Equal-weight lens: the average stock matters more than the giants — the theme lands broadly, not through mega-caps.",
+ "Tech":"Tech lens: leads both directions — mega-cap earnings and real yields decide the magnitude.",
+ "Financials":"Banking lens: the curve and credit quality are everything — this theme matters through lending margins and loan losses.",
+ "Banks":"Regional-bank lens: twitchier than broad financials on credit headlines — deposits and loan books are the pulse.",
+ "Biotech":"Biotech lens: binary by nature — trial and approval headlines can gap holdings double digits either way.",
+ "Energy":"Producer lens: crude is the share price one step removed — operating leverage amplifies oil moves both ways.",
+ "Semiconductors":"Semi lens: the most cyclical corner of tech — inventory and AI-capex headlines swing it violently.",
+ "Treasury Long":"Duration lens: roughly a 1%-point yield move swings price by its duration in years — the longest fuse on the shelf.",
+ "Treasury Intermediate":"Mid-curve lens: steadier than long bonds but still rate-driven — Fed expectations are the whole game.",
+ "Treasury Short":"Short-end lens: anchored near the policy rate — price barely moves; the yield itself is the story.",
+ "TIPS":"Real-yield lens: falling real yields lift it, inflation surprises validate it — nominal noise matters less.",
+ "Gold":"Fear-and-real-yields lens: those two are the whole story for {T} — everything else is noise.",
+ "Silver":"Silver lens: gold's volatile sibling plus industrial demand — bigger swings, same drivers, extra cyclicality.",
+ "Oil":"Futures-curve lens: contango quietly eats buy-and-hold returns — direction matters, but so does the roll.",
+ "Volatility":"Decay lens: spikes on panic, bleeds on calm — every quiet day costs money through futures decay."};
+function lensFor(e){
+  if(!e||!e.t)return "";
+  if(LENS[e.c])return LENS[e.c].split("{T}").join(e.t);
+  const c=e.c||"";
+  if(/Treasury|TIPS|Bond|Muni|Preferred|Convertible|Loan|MBS|Floating|Ultra-Short|Aggregate|Yield|Credit/i.test(c))
+    return "Bond lens for "+e.t+": price moves opposite yields and longer duration means bigger swings — read every story through the yield lens.";
+  if(/Gold|Silver|Platinum|Palladium|Copper|Oil|Gas|Commodity|Agriculture|Uranium|Metals|Mining|Water|Infrastructure|Timber/i.test(c))
+    return "Commodity lens for "+e.t+": physical supply, demand and the futures curve matter more than single-company headlines.";
+  if(/China|Japan|Europe|Eurozone|Kingdom|Germany|Italy|Spain|Sweden|Korea|Taiwan|Brazil|Mexico|Canada|Australia|India|Emerging|Developed|International|Indonesia|Philippines|Chile|Peru|Argentina|Greece|Hong Kong|Singapore|Malaysia|Latin|Asia|Africa|Country/i.test(c))
+    return "Country lens for "+e.t+": local currency, politics and commodities swing it harder than global headlines imply.";
+  if(/Dividend|Covered Call|Income/i.test(c))
+    return "Income lens for "+e.t+": only stories touching payouts, yields or credit truly matter — price wiggles are secondary.";
+  if(/Growth|Value|Factor|Small Cap|Mid Cap|Large Cap|Total Market|Nasdaq|REIT|Hous/i.test(c))
+    return "Equity lens for "+e.t+": earnings, multiples and rates decide — check which of the three the story touches.";
+  return "Sector lens for "+e.t+": it concentrates the theme — expect bigger moves than the broad market in both directions.";
+}
 /* ---- News for my ETF ---- */
 function rulesFor(t){
   const e=App.universe().find(x=>x.t===t); if(!e)return null;
@@ -141,10 +181,11 @@ function groupByLabel(arr){
 }
 function groupHTML(gr,t,explained){
   explained=explained||{};
-  const cat=((App.universe().find(e=>e.t===t)||{}).c)||"";
+  const ef=App.universe().find(e=>e.t===t)||{t:t,c:""};
+  const lens=lensFor(ef);
   return gr.map(g=>{
     let why=g.rule?g.rule.why:(`Names ${t} directly — check it against the drivers above (rates, earnings, flows, holdings). Pieces with no new facts are usually sentiment noise and rarely move the price.`);
-    if(g.rule&&LENS[cat])why+=" "+LENS[cat];
+    if(lens)why+=" "+lens;
     const rows=g.items.map(s=>{
       const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div>`;
       const desc=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
