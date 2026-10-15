@@ -25,6 +25,16 @@
 </div></section>
 
 <main class="wrap">
+  <div class="card"><h2>🔎 News for my ETF <span class="pill info">pick a fund, see only what moves it</span></h2>
+    <div class="controls">
+      <input type="search" id="etfq" list="etf-list" placeholder="Type a ticker — e.g. TLT, QQQ, GLD">
+      <datalist id="etf-list"></datalist>
+      <button class="btn gold" id="etfgo">Show my news</button>
+      <button class="btn ghost" id="etfclear">Show all</button>
+    </div>
+    <div id="etfnews"><p class="muted small">Choose one of your ETFs above and this week's headlines will be filtered to the stories that typically move it — with an explanation per story.</p></div>
+  </div>
+
   <div class="card"><h2>🔴 Live market headlines <span class="pill info">CNBC · updates on every visit</span></h2>
     <div id="live"><p class="muted">Loading live headlines…</p></div>
   </div>

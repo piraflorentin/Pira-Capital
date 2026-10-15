@@ -1,7 +1,8 @@
 /* News page: live CNBC headlines + baked Fed/ECB snapshots, impact-tagged. */
 (function(){
 "use strict";
-const {$,nav}=App; nav("news");
+const {$,nav,toast}=App; nav("news");
+let LIVE_ITEMS=[];
 
 const RULES=[
  {k:["federal reserve","fed ","fomc","powell","rate cut","rate hike","interest rate","inflation","cpi ","cpi(","ppi ","wholesale prices","consumer prices","pce ","disinflation","hawkish","dovish","lisa cook","discount rate"],label:"Rates & inflation",tick:["TLT","IEF","SHY","AGG","BND","TIP","XLF","XLRE","QQQ"],why:"Rate expectations reprice bonds first (long duration like TLT moves most), then growth stocks, banks and REITs."},
@@ -48,7 +49,9 @@ async function live(){
       date:(it.querySelector("pubDate")||{}).textContent||"",
       desc:((it.querySelector("description")||{}).textContent||"").replace(/<[^>]+>/g,"").slice(0,300)}));
     // feed order = CNBC's own ranking: never reorder, just take the top 14
-    box.innerHTML=items.slice(0,14).map(storyHTML).join("")||"<p class='muted'>No headlines right now.</p>";
+    LIVE_ITEMS=items.slice(0,14);
+    box.innerHTML=LIVE_ITEMS.map(storyHTML).join("")||"<p class='muted'>No headlines right now.</p>";
+    restorePick();
   }catch(e){
     // fall back to baked snapshot
     try{
@@ -66,5 +69,50 @@ async function baked(){
     $("#ecb").innerHTML=e.map(s=>`<div class="story"><h3><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></h3><div class="meta">${s.date||""} · <span class="pill info">Europe</span></div><div class="tags">${["VGK","EZU","FXE"].map(t=>`<span class="pill">${t}</span>`).join("")}</div></div>`).join("")||"<p class='muted'>—</p>";
   }catch(e){ $("#fed").innerHTML=$("#ecb").innerHTML="<p class='muted'>Snapshot unavailable.</p>"; }
 }
-live(); baked();
+/* ---- News for my ETF ---- */
+function rulesFor(t){
+  const e=App.universe().find(x=>x.t===t); if(!e)return null;
+  const txt=((e.n||"")+" "+(e.c||"")+" "+(e.d||"")).toLowerCase();
+  const rs=RULES.filter(r=>r.tick.indexOf(t)>=0||r.k.some(k=>txt.indexOf(k)>=0));
+  return {e,rs};
+}
+function storyForETF(s,labels){
+  return impacts(s.title,s.desc).filter(r=>labels.indexOf(r.label)>=0);
+}
+function renderETFNews(t){
+  const box=$("#etfnews");
+  const found=rulesFor(t);
+  if(!found){box.innerHTML="<p class='muted'>ETF not found — pick from the suggestions.</p>";return;}
+  const labels=found.rs.map(r=>r.label);
+  const hits=LIVE_ITEMS.map(s=>({s,m:storyForETF(s,labels)})).filter(x=>x.m.length);
+  const drivers=found.rs.length?found.rs.map(r=>r.label).join(" · "):"general market";
+  let html=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
+    <p class="small muted">This fund typically reacts to: <b>${drivers}</b>. ${hits.length} of ${LIVE_ITEMS.length} current headlines match.</p>`;
+  html+=hits.length?hits.map(x=>{
+    const r=x.m[0];
+    return `<div class="story"><h3><a href="${x.s.link}" target="_blank" rel="noopener">${x.s.title}</a></h3>
+      <div class="meta">${x.s.date||""} · <span class="pill info">${r.label}</span></div>
+      <p class="small" style="margin:6px 0 0"><b>What it means for ${found.e.t}:</b> ${r.why}</p></div>`;
+  }).join(""):`<p class="small muted">No current headline directly targets ${found.e.t} — a calm week for this fund. The full list below still applies indirectly (broad market moves lift or drag almost everything).</p>`;
+  box.innerHTML=html;
+  try{localStorage.setItem("pira-etf",t);}catch(e){}
+}
+function restorePick(){
+  let t=null; try{t=localStorage.getItem("pira-etf");}catch(e){}
+  if(t&&App.universe().some(x=>x.t===t))renderETFNews(t);
+}
+function initPicker(){
+  $("#etf-list").innerHTML=App.universe().map(e=>`<option value="${e.t}">${e.n}</option>`).join("");
+  const go=()=>{const v=$("#etfq").value.trim().toUpperCase();
+    const e=App.universe().find(x=>x.t===v);
+    if(!e){toast("ETF not found — pick from the suggestions.");return;}
+    $("#etfq").value=""; renderETFNews(e.t);
+    document.querySelector("#etfnews").scrollIntoView({behavior:"smooth",block:"nearest"});};
+  $("#etfgo").onclick=go;
+  $("#etfq").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
+  $("#etfclear").onclick=()=>{const b=$("#etfnews");
+    b.innerHTML="<p class='muted small'>Choose one of your ETFs above and this week's headlines will be filtered to the stories that typically move it — with an explanation per story.</p>";
+    try{localStorage.removeItem("pira-etf");}catch(e){}};
+}
+live(); baked(); initPicker();
 })();
