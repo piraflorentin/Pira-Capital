@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forecast — Pira Capital ETF Observatory</title>
+<meta name="description" content="Three data-driven 12-month scenarios (bear, base, bull) for any ETF, built from its own 5-year history.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="topbar"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt="logo"><span><b>Pira Capital</b><small>ETF OBSERVATORY</small></span></a>
+  <nav class="main">
+    <a data-p="home" href="index.html">Home</a>
+    <a data-p="news" href="news.html">Today's News</a>
+    <a data-p="compare" href="compare.html">Compare</a>
+    <a data-p="forecast" href="forecast.html">Forecast</a>
+  </nav>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <h1>Forecast: <span class="gold">3 scenarios, 12 months</span></h1>
+  <p class="sub">Pick one ETF. We take its real 5-year history — growth rate, volatility, drawdowns, trend — and project three statistical paths for the next year: <b>bear</b>, <b>base</b> and <b>bull</b>. <span id="fc-stamp" class="small"></span></p>
+</div></section>
+
+<main class="wrap">
+  <div class="card">
+    <div class="controls">
+      <input type="search" id="fcq" list="all-etfs2" placeholder="Choose 1 ETF — e.g. QQQ, TLT, GLD">
+      <datalist id="all-etfs2"></datalist>
+      <button class="btn gold" id="go">Build forecast</button>
+    </div>
+    <div class="pick" id="picked"></div>
+    <div class="kv" id="keystats"></div>
+  </div>
+
+  <div class="card">
+    <h2>12-month scenario fan</h2>
+    <div class="legend"><span><i style="background:#c03535"></i>Bear</span><span><i style="background:#0b1f3a"></i>Base</span><span><i style="background:#0a8a4d"></i>Bull</span></div>
+    <div style="position:relative"><canvas class="chart" id="fchart"></canvas></div>
+    <div class="scen">
+      <div class="box bear"><div class="t">🐻 Bear case</div><div class="p" id="p-bear">…</div><div class="small" id="d-bear"></div></div>
+      <div class="box base"><div class="t">😐 Base case</div><div class="p" id="p-base">…</div><div class="small" id="d-base"></div></div>
+      <div class="box bull"><div class="t">🐂 Bull case</div><div class="p" id="p-bull">…</div><div class="small" id="d-bull"></div></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h2>How the 3 paths are built</h2>
+      <p class="small muted">From the ETF's own last ~5 years of daily prices we measure: <b>μ</b> = average monthly (log) return, <b>σ</b> = monthly volatility, plus CAGR, max drawdown and trend (price vs 200-day average).</p>
+      <ul class="small muted"><li><b>Base</b> compounds the historical monthly drift μ for 12 months.</li><li><b>Bull</b> compounds μ + ½σ (a sustained one-sided surprise).</li><li><b>Bear</b> compounds μ − ½σ.</li></ul>
+      <p class="small muted">The band between bear and bull covers roughly ±½σ/month of surprise — wide for volatile funds, narrow for T-bill funds. This is descriptive statistics, <b>not a prediction</b>: markets are driven by future news (rates, earnings, geopolitics — see <a href="news.html">Today's News</a>), which history cannot know.</p>
+    </div>
+    <div class="card"><h2>What could push it either way</h2><div id="drivers" class="small muted">Select an ETF to see its key sensitivities.</div></div>
+  </div>
+
+  <div class="card"><h2>Month-by-month paths</h2>
+    <div class="tblwrap"><table><thead><tr><th class="l">Month</th><th>Bear</th><th>Base</th><th>Bull</th></tr></thead><tbody id="mtable"></tbody></table></div>
+    <p class="small muted"><b>Disclaimer:</b> hypothetical scenarios for education and portfolio planning. Not financial advice, not a recommendation. Past performance does not predict future returns. Leveraged/inverse ETFs reset daily and decay over holding periods — their long-run paths are especially uncertain.</p>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<footer><div class="wrap">
+  <div><h4>Pira Capital — ETF Observatory</h4><div class="muted">Educational content only — not financial advice. History: Nasdaq daily snapshots.</div></div>
+  <div><h4>Pages</h4><a href="index.html">Home</a><br><a href="news.html">Today's News</a><br><a href="compare.html">Compare</a><br><a href="forecast.html">Forecast</a></div>
+  <div><h4>Data</h4><div class="muted">Live + daily snapshots.<br>© <span id="yr"></span> Pira Capital</div></div>
+</div></footer>
+
+<script src="assets/universe.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/forecast.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compare ETFs — Pira Capital ETF Observatory</title>
+<meta name="description" content="Compare up to 5 ETFs side by side: performance over 1 week, 1 month, 1 year and 5 years.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="topbar"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt="logo"><span><b>Pira Capital</b><small>ETF OBSERVATORY</small></span></a>
+  <nav class="main">
+    <a data-p="home" href="index.html">Home</a>
+    <a data-p="news" href="news.html">Today's News</a>
+    <a data-p="compare" href="compare.html">Compare</a>
+    <a data-p="forecast" href="forecast.html">Forecast</a>
+  </nav>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <h1>Compare ETFs, <span class="gold">your choice</span></h1>
+  <p class="sub">Pick up to 5 ETFs and see normalised performance (rebased to 100) over the past week, month, year or 5 years — with return, volatility and drawdown stats. <span id="cmp-stamp" class="small"></span></p>
+</div></section>
+
+<main class="wrap">
+  <div class="card">
+    <h2>1 · Choose ETFs</h2>
+    <div class="controls">
+      <input type="search" id="pickq" list="all-etfs" placeholder="Type a ticker or name, then press Add — e.g. SPY">
+      <datalist id="all-etfs"></datalist>
+      <button class="btn gold" id="add">Add ETF</button>
+      <button class="btn ghost" id="reset">Reset</button>
+    </div>
+    <div class="pick" id="chips"></div>
+    <h2>2 · Choose period</h2>
+    <div class="ranges" id="ranges">
+      <button data-r="1W">1 week</button><button data-r="1M">1 month</button><button data-r="1Y" class="on">1 year</button><button data-r="5Y">5 years</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Performance — rebased to 100</h2>
+    <div class="legend" id="legend"></div>
+    <div style="position:relative"><canvas class="chart" id="chart"></canvas></div>
+    <p class="small muted" id="chart-note"></p>
+    <p><button class="btn ghost" id="csv">Download data (CSV)</button></p>
+  </div>
+
+  <div class="card">
+    <h2>Statistics</h2>
+    <div class="tblwrap"><table><thead><tr><th class="l">ETF</th><th>Period return</th><th>CAGR</th><th>Volatility (ann.)</th><th>Max drawdown</th><th>Last price</th></tr></thead><tbody id="stats"><tr><td colspan="6" class="muted">Add ETFs to see statistics.</td></tr></tbody></table></div>
+    <p class="small muted">Price return (distributions excluded). CAGR shown for periods ≥ 1 year. History snapshots refresh every weekday; last price is live.</p>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<footer><div class="wrap">
+  <div><h4>Pira Capital — ETF Observatory</h4><div class="muted">Educational content only — not financial advice. History: Nasdaq daily snapshots.</div></div>
+  <div><h4>Pages</h4><a href="index.html">Home</a><br><a href="news.html">Today's News</a><br><a href="compare.html">Compare</a><br><a href="forecast.html">Forecast</a></div>
+  <div><h4>Data</h4><div class="muted">Live + daily snapshots.<br>© <span id="yr"></span> Pira Capital</div></div>
+</div></footer>
+
+<script src="assets/universe.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/compare.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pira Capital — ETF Observatory | Top 500 ETFs, live prices</title>
+<meta name="description" content="Track the 500 largest US-listed ETFs with live prices and daily performance. Compare, follow news and explore forecasts.">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="topbar"><div class="wrap">
+  <a class="brand" href="index.html"><img src="assets/logo.svg" alt="logo"><span><b>Pira Capital</b><small>ETF OBSERVATORY</small></span></a>
+  <nav class="main">
+    <a data-p="home" href="index.html">Home</a>
+    <a data-p="news" href="news.html">Today's News</a>
+    <a data-p="compare" href="compare.html">Compare</a>
+    <a data-p="forecast" href="forecast.html">Forecast</a>
+  </nav>
+</div></header>
+
+<section class="hero"><div class="wrap">
+  <h1>The 500 largest ETFs, <span class="gold">live every day</span></h1>
+  <p class="sub">Current price and daily performance for the 500 biggest US-listed ETFs — from S&amp;P 500 trackers to bonds, gold, sectors and leveraged funds. Data refreshes automatically: live quotes on every visit, history rebuilt daily.</p>
+  <div class="kpis" id="kpis">
+    <div class="kpi"><div class="k">S&amp;P 500 · SPY</div><div class="v" id="k-spy">…</div><div class="s" id="k-spy-s">loading</div></div>
+    <div class="kpi"><div class="k">Nasdaq 100 · QQQ</div><div class="v" id="k-qqq">…</div><div class="s" id="k-qqq-s">loading</div></div>
+    <div class="kpi"><div class="k">Long Treasuries · TLT</div><div class="v" id="k-tlt">…</div><div class="s" id="k-tlt-s">loading</div></div>
+    <div class="kpi"><div class="k">Gold · GLD</div><div class="v" id="k-gld">…</div><div class="s" id="k-gld-s">loading</div></div>
+    <div class="kpi"><div class="k">Market breadth</div><div class="v" id="k-br">…</div><div class="s" id="k-br-s">advancers vs decliners</div></div>
+  </div>
+</div></section>
+
+<main class="wrap">
+  <div class="card">
+    <h2>What is an ETF?</h2>
+    <p class="muted">An <b>exchange-traded fund (ETF)</b> is a basket of securities (stocks, bonds, commodities) that trades on an exchange like a single stock. One purchase gives instant diversification, usually at a low fee. Below: the fund's <b>name</b>, <b>current price</b> and <b>today's performance</b>. Click any row for the fund's profile, key stats and factsheet links.</p>
+    <div class="status small"><span class="dot" id="dot"></span><span id="status">Connecting to live market data…</span><span class="muted" id="stamp"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <input type="search" id="q" placeholder="Search name or ticker — e.g. QQQ, gold, treasury…">
+      <select id="cat"><option value="">All categories</option></select>
+      <select id="dir"><option value="">All funds</option><option value="up">Gainers today</option><option value="down">Losers today</option></select>
+      <select id="sort"><option value="pct">Sort: day % ↓</option><option value="pctAsc">Sort: day % ↑</option><option value="price">Sort: price ↓</option><option value="mcap">Sort: market cap ↓</option><option value="name">Sort: name A–Z</option></select>
+    </div>
+    <div class="tblwrap"><table>
+      <thead><tr><th class="l">#</th><th class="l">ETF</th><th>Price</th><th>Day chg</th><th>Day %</th><th>Mkt cap</th><th>Div yield</th><th class="l">About</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="8" class="muted">Loading live quotes…</td></tr></tbody>
+    </table></div>
+    <div class="pager"><button class="btn ghost" id="prev">← Prev</button><span id="pg" class="small muted"></span><button class="btn ghost" id="next">Next →</button></div>
+  </div>
+
+  <div class="card grid2">
+    <div><h2>How this page stays current</h2><p class="muted small">Prices and daily changes load <b>live from CNBC market data</b> every time you open the page (auto-refresh every 2 minutes while open). Five-year history files used on the Compare and Forecast pages are rebuilt <b>every weekday after the US close</b> by an automated job from Nasdaq market data. No manual updates, no stale tables.</p></div>
+    <div><h2>Sources</h2><p class="muted small">Quotes: CNBC Quote API · History: Nasdaq Historical API · Fund facts: issuer factsheets (linked per fund) · News: GDELT + Federal Reserve, ECB, IMF. Read the <a href="news.html">Today's News</a> page for how headlines map to ETF moves.</p></div>
+  </div>
+</main>
+
+<div class="modal" id="modal"><div class="sheet"><button class="x" id="mx">✕</button><div id="mbody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<footer><div class="wrap">
+  <div><h4>Pira Capital — ETF Observatory</h4><div class="muted">A personal investment-projects site. Educational content only — not financial advice. Market data: CNBC &amp; Nasdaq. Fund details: respective issuers.</div></div>
+  <div><h4>Pages</h4><a href="index.html">Home</a><br><a href="news.html">Today's News</a><br><a href="compare.html">Compare</a><br><a href="forecast.html">Forecast</a></div>
+  <div><h4>Data</h4><div class="muted" id="foot-note">Live quotes load on every visit.<br>History refreshed daily.</div><div class="muted">© <span id="yr"></span> Pira Capital</div></div>
+</div></footer>
+
+<script src="assets/universe.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/home.js"></script>
+</body>
+</html>
