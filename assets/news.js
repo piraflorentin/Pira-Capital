@@ -4,7 +4,7 @@
 const {$,nav}=App; nav("news");
 
 const RULES=[
- {k:["federal reserve","fed ","fomc","powell","rate cut","rate hike","interest rate","inflation","cpi ","cpi(","pce ","disinflation","hawkish","dovish","lisa cook","discount rate"],label:"Rates & inflation",tick:["TLT","IEF","SHY","AGG","BND","TIP","XLF","XLRE","QQQ"],why:"Rate expectations reprice bonds first (long duration like TLT moves most), then growth stocks, banks and REITs."},
+ {k:["federal reserve","fed ","fomc","powell","rate cut","rate hike","interest rate","inflation","cpi ","cpi(","ppi ","wholesale prices","consumer prices","pce ","disinflation","hawkish","dovish","lisa cook","discount rate"],label:"Rates & inflation",tick:["TLT","IEF","SHY","AGG","BND","TIP","XLF","XLRE","QQQ"],why:"Rate expectations reprice bonds first (long duration like TLT moves most), then growth stocks, banks and REITs."},
  {k:["treasury","yields","yield","bond market","deficit","national debt","t-bill","auction"],label:"Bonds & yields",tick:["TLT","IEF","SHY","LQD","HYG","SGOV"],why:"Supply and demand for US debt sets yields; when yields rise, existing bond ETF prices fall."},
  {k:["oil","crude","opec","gasoline","shale","refiner","rig count","lng ","natural gas"],label:"Energy",tick:["XLE","VDE","USO","XOP","UNG"],why:"Crude and gas prices feed directly into energy-producer ETFs and futures-based funds like USO/UNG."},
  {k:["nvidia","tsmc","semiconductor","chip ","chips ","broadcom","asml","artificial intelligence"," ai ","ai boom","openai","datacenter","data center","cloud"],label:"Tech & semis",tick:["SOXX","SMH","XLK","VGT","QQQ","BOTZ"],why:"AI capex headlines reprice chipmakers and cloud first, then the whole Nasdaq-100 via QQQ."},
@@ -47,8 +47,8 @@ async function live(){
       link:(it.querySelector("link")||{}).textContent||"",
       date:(it.querySelector("pubDate")||{}).textContent||"",
       desc:((it.querySelector("description")||{}).textContent||"").replace(/<[^>]+>/g,"").slice(0,300)}));
-    const withHit=items.filter(s=>impacts(s.title,s.desc).length), rest=items.filter(s=>!impacts(s.title,s.desc).length);
-    box.innerHTML=(withHit.concat(rest)).slice(0,14).map(storyHTML).join("")||"<p class='muted'>No headlines right now.</p>";
+    // feed order = CNBC's own ranking: never reorder, just take the top 14
+    box.innerHTML=items.slice(0,14).map(storyHTML).join("")||"<p class='muted'>No headlines right now.</p>";
   }catch(e){
     // fall back to baked snapshot
     try{
