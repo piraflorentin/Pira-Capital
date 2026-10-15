@@ -311,4 +311,9 @@ function initPicker(){
   document.addEventListener("auth-ready",()=>restorePick());
 }
 live(); baked(); initPicker();
+document.querySelector("#newsrefresh").onclick=()=>live();
+let lastFocus=Date.now();
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden&&Date.now()-lastFocus>120000){lastFocus=Date.now();live();}
+});
 })();

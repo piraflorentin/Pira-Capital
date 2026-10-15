@@ -198,9 +198,10 @@ function init(){
     try{S.favs=new Set(JSON.parse(localStorage.getItem("pira-favs")||"[]"));}catch(e){}
     render();
   });
-  setInterval(async()=>{ // refresh current page every 60s
+  setInterval(async()=>{ // refresh current page every 30s while visible
+    if(document.hidden)return;
     Object.keys(S.quotes).forEach(k=>delete S.quotes[k]); await render();
-  },60000);
+  },30000);
 }
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",init):init();
 })();
