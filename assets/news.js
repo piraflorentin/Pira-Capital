@@ -139,7 +139,8 @@ function groupByLabel(arr){
   });
   return Object.keys(g).map(k=>({label:k,rule:g[k].rule,items:g[k].items}));
 }
-function groupHTML(gr,t){
+function groupHTML(gr,t,explained){
+  explained=explained||{};
   const cat=((App.universe().find(e=>e.t===t)||{}).c)||"";
   return gr.map(g=>{
     let why=g.rule?g.rule.why:(`Names ${t} directly — check it against the drivers above (rates, earnings, flows, holdings). Pieces with no new facts are usually sentiment noise and rarely move the price.`);
@@ -148,7 +149,10 @@ function groupHTML(gr,t){
       const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div>`;
       const desc=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
       return `<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a>${meta}${desc}</div>`;}).join("");
-    return `<div class="story"><div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"}</span></div>
+    const head=`<div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"}</span></div>`;
+    if(explained[g.label])return `<div class="story">${head}<p class="small muted" style="margin:4px 0 0">Same dynamic as above — more evidence, same read.</p>${rows}</div>`;
+    explained[g.label]=1;
+    return `<div class="story">${head}
       <p class="small" style="margin:6px 0"><b>What it means for ${t}:</b> ${why}</p>${rows}</div>`;
   }).join("");
 }
@@ -201,19 +205,25 @@ async function renderETFNews(t){
     return x.m.some(r=>labels.indexOf(r.label)>=0);
   });
   const scored=hits.concat(witems).map(x=>({x,tone:toneOf(x.s.title,x.m[0]||null)}));
+  const explained={};
+  const seen={};
+  hits.forEach(x=>{seen[x.s.title.trim().toLowerCase()]=1;});
+  const fresh=witems.filter(x=>!seen[x.s.title.trim().toLowerCase()]);
   let html=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
     <p class="small muted">This fund typically reacts to: <b>${drivers}</b>.</p>${warn}`;
   html+=verdictHTML(scored,t);
   html+=await monthScoreHTML(t);
   if(hits.length){
     html+=`<h3 style="margin-top:10px">📰 From the live feed <span class="pill info">${hits.length} of ${LIVE_ITEMS.length}</span></h3>`;
-    html+=groupHTML(groupByLabel(hits),t);
+    html+=groupHTML(groupByLabel(hits),t,explained);
   }else{
     html+=`<p class="small muted">No live-feed headline directly targets ${found.e.t} right now — the stories below still apply indirectly (broad moves lift or drag almost everything).</p>`;
   }
-  if(witems.length){
+  if(fresh.length){
     html+=`<h3 style="margin-top:14px">🌐 Across the web: latest on ${t} <span class="pill info">scanned daily · ${web.asof}</span></h3>`;
-    html+=groupHTML(groupByLabel(witems),t);
+    html+=groupHTML(groupByLabel(fresh),t,explained);
+  }else if(witems.length){
+    html+=`<p class="small muted">The web scan found only stories already covered in the live feed above.</p>`;
   }else{
     html+=`<p class="small muted">No dedicated web stories for ${t} in this scan — it rescans all 500 ETFs daily, so check back tomorrow.</p>`;
   }
