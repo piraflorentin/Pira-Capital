@@ -25,6 +25,54 @@ def etf_list():
         return []
 
 
+def story_outlet(title, src):
+    title, outlet = title, src
+    if " - " in title:
+        head, tail = title.rsplit(" - ", 1)
+        if len(tail) < 45 and not outlet:
+            return head, tail
+    return title, outlet
+
+
+def etf_scan_bing(t):
+    q = urllib.parse.quote(f"{t} ETF")
+    url = f"https://www.bing.com/news/search?q={q}&format=rss"
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        root = ET.fromstring(r.read())
+    items = []
+    for it in list(root.iter("item"))[:ETF_SCAN_N]:
+        def txt(tag):
+            el = it.find(tag)
+            return clean(el.text) if el is not None and el.text else ""
+        title, outlet = story_outlet(txt("title"), "")
+        desc = txt("description")[:240]
+        if title:
+            items.append({"title": title, "link": txt("link"), "date": txt("pubDate"),
+                          "outlet": outlet, "desc": desc})
+    return items
+
+
+def etf_scan_google(t):
+    q = urllib.parse.quote(f"{t} ETF")
+    url = (f"https://news.google.com/rss/search?q={q}"
+           "&hl=en-US&gl=US&ceid=US%3Aen")
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        root = ET.fromstring(r.read())
+    items = []
+    for it in list(root.iter("item"))[:ETF_SCAN_N]:
+        def txt(tag):
+            el = it.find(tag)
+            return clean(el.text) if el is not None and el.text else ""
+        src = it.find("source")
+        title, outlet = story_outlet(txt("title"), clean(src.text) if src is not None else "")
+        if title:
+            items.append({"title": title, "link": txt("link"), "date": txt("pubDate"),
+                          "outlet": outlet, "desc": ""})
+    return items
+
+
 def clean(s):
     s = html.unescape(s or "")
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", s)).strip()
@@ -62,28 +110,19 @@ def main():
     # per-ETF web scan (lazy file: only fetched when a visitor picks an ETF)
     etfnews = {}
     for i, t in enumerate(etf_list()):
+        items = []
         try:
-            q = urllib.parse.quote(f"{t} ETF")
-            url = (f"https://news.google.com/rss/search?q={q}"
-                   "&hl=en-US&gl=US&ceid=US%3Aen")
-            req = urllib.request.Request(url, headers=UA)
-            with urllib.request.urlopen(req, timeout=30) as r:
-                root = ET.fromstring(r.read())
-            items = []
-            for it in list(root.iter("item"))[:ETF_SCAN_N]:
-                def txt(tag):
-                    el = it.find(tag)
-                    return clean(el.text) if el is not None and el.text else ""
-                src = it.find("source")
-                items.append({"title": txt("title"), "link": txt("link"),
-                              "date": txt("pubDate"),
-                              "outlet": clean(src.text) if src is not None else ""})
-            items = [x for x in items if x["title"]]
-            if items:
-                etfnews[t] = items
-            print(f"[{i+1}]", t, len(items))
+            items = etf_scan_bing(t) or etf_scan_google(t)
         except Exception as e:
             print(f"[{i+1}]", t, "FAILED:", e)
+        try:
+            if not items:
+                items = etf_scan_google(t)
+        except Exception:
+            pass
+        if items:
+            etfnews[t] = items
+        print(f"[{i+1}]", t, len(items))
         time.sleep(1.2)
     json.dump({"asof": datetime.date.today().isoformat(), "etf": etfnews},
               open(os.path.join(BASE, "data", "etf-news.json"), "w"))

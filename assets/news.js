@@ -136,7 +136,10 @@ function groupByLabel(arr){
 function groupHTML(gr,t){
   return gr.map(g=>{
     const why=g.rule?g.rule.why:(`Names ${t} directly — check it against the drivers above (rates, earnings, flows, holdings). Pieces with no new facts are usually sentiment noise and rarely move the price.`);
-    const rows=g.items.map(s=>`<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a><div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div></div>`).join("");
+    const rows=g.items.map(s=>{
+      const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div>`;
+      const desc=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
+      return `<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a>${meta}${desc}</div>`;}).join("");
     return `<div class="story"><div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"}</span></div>
       <p class="small" style="margin:6px 0"><b>What it means for ${t}:</b> ${why}</p>${rows}</div>`;
   }).join("");
@@ -145,10 +148,30 @@ function verdictHTML(scored,t){
   const pos=scored.filter(x=>x.tone>0).length, neg=scored.filter(x=>x.tone<0).length, neu=scored.length-pos-neg;
   if(!scored.length)return "";
   const net=pos-neg;
-  const v=net>=2?["🟢 Leans positive","pos"]:net<=-2?["🔴 Leans negative","neg"]:["⚪ Mixed / neutral",""];
+  const v=net>=1?["🟢 Leans positive","pos"]:net<=-1?["🔴 Leans negative","neg"]:["⚪ Mixed / neutral",""];
   return `<div class="box base" style="border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#eef4ff;margin:10px 0">
     <b>${v[0]} for ${t}</b> <span class="small muted">— rough read across ${scored.length} stories (${pos} positive · ${neg} negative · ${neu} neutral).</span>
     <div class="small muted">Keyword-based gauge, not advice: one major story can outweigh several small ones, and markets often price news in before you read it.</div></div>`;
+}
+async function monthScoreHTML(t){
+  try{
+    const h=await App.getHistory(t), rows=h.rows;
+    if(!rows||rows.length<40)return "";
+    const closes=rows.map(r=>parseFloat(r[1]));
+    const lp=rows[rows.length-1][0].split("/");
+    let i=rows.length-1;
+    while(i>0){const p=rows[i-1][0].split("/"); if(+p[0]!==+lp[0]||+p[2]!==+lp[2])break; i--;}
+    let px=closes[closes.length-1];
+    try{const q=await App.getQuotes([t]); if(q[t]&&!isNaN(q[t].price))px=q[t].price;}catch(e){}
+    const mtd=px/closes[i]-1, m1=px/closes[closes.length-22]-1;
+    let s50=0; for(let k=closes.length-50;k<closes.length;k++)s50+=closes[k]; s50/=50;
+    let s=5+(mtd>0?1:-1)+(m1>0?1:-1)+(px>s50?1:-1);
+    s+=(mtd>0.02?1:mtd<-0.02?-1:0)+(m1>0.05?1:m1<-0.05?-1:0);
+    s=Math.max(0,Math.min(10,Math.round(s)));
+    const f=v=>((v>=0?"+":"")+(v*100).toFixed(1)+"%");
+    const mood=s>=7?"strong month":s>=4?"steady":"weak month";
+    return `<div style="border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#f6f8fb;margin:10px 0"><b>📊 Month score ${s}/10</b> <span class="small muted">— ${mood}: MTD ${f(mtd)} · 1M ${f(m1)} · ${px>s50?"above":"below"} 50-day avg. Pure price-momentum gauge, recomputed automatically every day — not advice.</span></div>`;
+  }catch(e){return "";}
 }
 async function renderETFNews(t){
   const box=$("#etfnews");
@@ -173,6 +196,7 @@ async function renderETFNews(t){
   let html=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
     <p class="small muted">This fund typically reacts to: <b>${drivers}</b>.</p>${warn}`;
   html+=verdictHTML(scored,t);
+  html+=await monthScoreHTML(t);
   if(hits.length){
     html+=`<h3 style="margin-top:10px">📰 From the live feed <span class="pill info">${hits.length} of ${LIVE_ITEMS.length}</span></h3>`;
     html+=groupHTML(groupByLabel(hits),t);
