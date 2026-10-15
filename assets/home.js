@@ -58,7 +58,7 @@ async function render(){
 
 function toggleFav(t){
   S.favs.has(t)?S.favs.delete(t):S.favs.add(t);
-  saveFavs(); render();
+  saveFavs(); if(window.AuthSync)AuthSync.push(); render();
   toast(S.favs.has(t)?t+" added to favorites.":t+" removed from favorites.");
 }
 
@@ -166,6 +166,10 @@ function init(){
   $("#mx").addEventListener("click",()=>$("#modal").classList.remove("open"));
   $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")$("#modal").classList.remove("open");});
   render(); hero();
+  document.addEventListener("auth-ready",()=>{ // cloud favorites arrived
+    try{S.favs=new Set(JSON.parse(localStorage.getItem("pira-favs")||"[]"));}catch(e){}
+    render();
+  });
   setInterval(async()=>{ // refresh current page every 60s
     Object.keys(S.quotes).forEach(k=>delete S.quotes[k]); await render();
   },60000);

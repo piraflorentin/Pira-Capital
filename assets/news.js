@@ -272,6 +272,7 @@ async function renderETFNews(t){
   }
   box.innerHTML=html;
   try{localStorage.setItem("pira-etf",t);}catch(e){}
+  if(window.AuthSync)AuthSync.push();
 }
 function restorePick(){
   let t=null; try{t=localStorage.getItem("pira-etf");}catch(e){}
@@ -305,7 +306,9 @@ function initPicker(){
   $("#etfq").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
   $("#etfclear").onclick=()=>{const b=$("#etfnews");
     b.innerHTML="<p class='muted small'>Choose one of your ETFs above and this week's headlines will be filtered to the stories that typically move it — with an explanation per story.</p>";
-    try{localStorage.removeItem("pira-etf");}catch(e){}};
+    try{localStorage.removeItem("pira-etf");}catch(e){}
+    if(window.AuthSync)AuthSync.push();};
+  document.addEventListener("auth-ready",()=>restorePick());
 }
 live(); baked(); initPicker();
 })();

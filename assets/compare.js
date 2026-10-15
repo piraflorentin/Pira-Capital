@@ -114,23 +114,35 @@ async function statsTable(){
 
 function chips(){
   $("#chips").innerHTML=S.sel.map((t,i)=>`<span class="chip" style="border-left:6px solid ${COLORS[i%COLORS.length]}">${t}<button data-rm="${t}">✕</button></span>`).join("")||'<span class="muted small">None selected.</span>';
-  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{S.sel=S.sel.filter(x=>x!==b.dataset.rm);chips();load();});
+  document.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{S.sel=S.sel.filter(x=>x!==b.dataset.rm);chips();saveCmp();load();});
+}
+function saveCmp(){
+  try{localStorage.setItem("pira-compare",JSON.stringify({sel:S.sel,range:S.range}));}catch(e){}
+  if(window.AuthSync)AuthSync.push();
 }
 function add(){
   const e=resolve($("#pickq").value);
   if(!e){toast("ETF not found — pick from suggestions.");return;}
   if(S.sel.includes(e.t)){toast(e.t+" already added.");return;}
   if(S.sel.length>=5){toast("Maximum 5 ETFs for a readable chart.");return;}
-  S.sel.push(e.t); $("#pickq").value=""; chips(); load();
+  S.sel.push(e.t); $("#pickq").value=""; chips(); saveCmp(); load();
 }
 function init(){
   $("#all-etfs").innerHTML=universe().map(e=>`<option value="${e.t}">${e.n}</option>`).join("");
+  try{
+    const saved=JSON.parse(localStorage.getItem("pira-compare")||"null");
+    if(saved&&saved.sel&&saved.sel.length&&saved.sel.every(t=>universe().some(e=>e.t===t))){
+      S.sel=saved.sel.slice(0,5);
+      if(saved.range){S.range=saved.range;
+        document.querySelectorAll("#ranges button").forEach(x=>x.classList.toggle("on",x.dataset.r===S.range));}
+    }
+  }catch(e){}
   $("#add").onclick=add;
   $("#pickq").addEventListener("keydown",e=>{if(e.key==="Enter")add();});
-  $("#reset").onclick=()=>{S.sel=["SPY","QQQ","VTI"];chips();load();};
+  $("#reset").onclick=()=>{S.sel=["SPY","QQQ","VTI"];chips();saveCmp();load();};
   document.querySelectorAll("#ranges button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("#ranges button").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on"); S.range=b.dataset.r; load();});
+    b.classList.add("on"); S.range=b.dataset.r; saveCmp(); load();});
   $("#csv").onclick=()=>{
     const A=aligned(); if(!A.length){toast("Nothing to download.");return;}
     const dates=[...new Set(A.flatMap(a=>a.pts.map(p=>p.d)))].sort();
@@ -141,6 +153,17 @@ function init(){
     a.download=`etf-compare-${S.range}.csv`; a.click();
   };
   chips(); load();
+  document.addEventListener("auth-ready",()=>{ // cloud comparison arrived
+    try{
+      const saved=JSON.parse(localStorage.getItem("pira-compare")||"null");
+      if(saved&&saved.sel&&saved.sel.length&&saved.sel.every(t=>universe().some(e=>e.t===t))){
+        S.sel=saved.sel.slice(0,5);
+        if(saved.range){S.range=saved.range;
+          document.querySelectorAll("#ranges button").forEach(x=>x.classList.toggle("on",x.dataset.r===S.range));}
+        chips(); load();
+      }
+    }catch(e){}
+  });
 }
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",init):init();
 })();
