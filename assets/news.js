@@ -97,7 +97,7 @@ const DIRS={
  "Gold & safety":{up:["fear","risk","war","crisis","record","rate cut","dovish","safe haven","central bank"],down:["rate hike","hawkish","strong dollar","risk-on","calm"]},
  "Growth & consumer":{up:["beat","strong","boom","record","optimism","rebound"],down:["recession","miss","weak","layoff","slump","fear","contracts"]},
  "China & trade":{up:["stimulus","deal","talks","eases","rebound","support"],down:["tariff","ban","crackdown","probe","sanction","warning","slump"]},
- "Geopolitics & defence":{up:["ceasefire","deal","talks","peace"],down:["strike","war","missile","attack","threat","sanction"]},
+ "Geopolitics & defence":{up:["strike","war","missile","attack","threat","sanction","escalat"],down:["ceasefire","deal","talks","peace","de-escalat"]},
  "Earnings":{up:["beat","record","raises","upgrade","strong","growth"],down:["miss","warning","weak","downgrade","slump","cuts"]},
  "Crypto-linked":{up:["approv","adoption","record","surge","rally","inflow","reserve"],down:["ban","crackdown","hack","lawsuit","plunge","crash","outflow","fraud"]},
  "Clean energy":{up:["subsid","approv","deal","record","demand","climate deal"],down:["repeal","cut subsid","oversupply","bankrupt","tariff","slowdown"]},
@@ -189,7 +189,9 @@ function groupHTML(gr,t,explained){
     const rows=g.items.map(s=>{
       const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div>`;
       const desc=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
-      return `<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a>${meta}${desc}</div>`;}).join("");
+      const dr=toneOf(s.title,g.rule);
+      const chip=dr>0?' <span class="pill up">▲ likely up</span>':dr<0?' <span class="pill down">▼ likely down</span>':' <span class="pill flat">• neutral</span>';
+      return `<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a>${chip}${meta}${desc}</div>`;}).join("");
     const head=`<div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"}</span></div>`;
     if(explained[g.label])return `<div class="story">${head}<p class="small muted" style="margin:4px 0 0">Same dynamic as above — more evidence, same read.</p>${rows}</div>`;
     explained[g.label]=1;
