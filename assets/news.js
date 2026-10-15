@@ -152,13 +152,13 @@ async function renderETFNews(t){
   html+=verdictHTML(scored,t);
   if(hits.length){
     html+=`<h3 style="margin-top:10px">📰 From the live feed <span class="pill info">${hits.length} of ${LIVE_ITEMS.length}</span></h3>`;
-    html+=groupByLabel(hits);
+    html+=groupHTML(groupByLabel(hits),t);
   }else{
     html+=`<p class="small muted">No live-feed headline directly targets ${found.e.t} right now — the stories below still apply indirectly (broad moves lift or drag almost everything).</p>`;
   }
   if(witems.length){
     html+=`<h3 style="margin-top:14px">🌐 Across the web: latest on ${t} <span class="pill info">scanned daily · ${web.asof}</span></h3>`;
-    html+=groupByLabel(witems);
+    html+=groupHTML(groupByLabel(witems),t);
   }else{
     html+=`<p class="small muted">No dedicated web stories for ${t} in this scan — it rescans all 500 ETFs daily, so check back tomorrow.</p>`;
   }
