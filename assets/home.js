@@ -80,6 +80,34 @@ async function renderFavs(){
   }).join("");
   tb.querySelectorAll("tr[data-t]").forEach(tr=>tr.addEventListener("click",()=>openModal(tr.dataset.t)));
   tb.querySelectorAll("[data-unfav]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();toggleFav(b.dataset.unfav);}));
+  renderAlertBox();
+}
+
+async function renderAlertBox(){
+  const box=$("#alertbox"); if(!box)return;
+  const A=window.AuthSync;
+  if(!A||!A.enabled||!A.user){
+    box.innerHTML=`<p class="small muted">🔔 <b>Email alerts are coming:</b> log in to get notified when a favorite moves a lot or makes the news.</p>`;
+    return;
+  }
+  let p={min_move_pct:2,price_alerts:true,news_alerts:true};
+  try{
+    const r=await A.client.from("alert_prefs").select("*").eq("user_id",A.user.id).maybeSingle();
+    if(r.data)p=Object.assign(p,r.data);
+  }catch(e){}
+  box.innerHTML=`<div class="controls" style="margin-top:0">
+      <span class="small"><b>🔔 Email alerts to ${A.user.email}:</b></span>
+      <label class="small">Big move <select id="apct">
+        ${[1,2,3,5].map(v=>`<option value="${v}"${+p.min_move_pct===v?" selected":""}>±${v}%</option>`).join("")}
+      </select></label>
+      <label class="small"><input type="checkbox" id="aprice"${p.price_alerts?" checked":""}> price moves</label>
+      <label class="small"><input type="checkbox" id="anews"${p.news_alerts?" checked":""}> news on my funds</label>
+    </div>`;
+  const save=async()=>{
+    try{await A.client.from("alert_prefs").upsert({user_id:A.user.id,
+      min_move_pct:+$("#apct").value,price_alerts:$("#aprice").checked,news_alerts:$("#anews").checked});}catch(e){}
+  };
+  $("#apct").onchange=save; $("#aprice").onchange=save; $("#anews").onchange=save;
 }
 
 function aboutText(e){

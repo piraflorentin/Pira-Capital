@@ -16,6 +16,16 @@ jobs:
         run: |
           python3 scripts/fetch_history.py
           python3 scripts/refresh_news.py
+      - name: Send news-digest emails
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        run: python3 scripts/news_alerts.py
       - name: Commit updated snapshots
         run: |
           git config user.name "etf-bot"

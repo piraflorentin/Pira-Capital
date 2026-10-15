@@ -107,6 +107,6 @@ async function init(){
     if(user)pull(); else document.dispatchEvent(new CustomEvent("auth-ready"));
   }catch(e){ console.warn("auth disabled", e); }
 }
-window.AuthSync={get enabled(){return ENABLED;},get user(){return user;},push:push,pull:pull};
+window.AuthSync={get enabled(){return ENABLED;},get user(){return user;},push:push,pull:pull,get client(){return sb;}};
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",init):init();
 })();
