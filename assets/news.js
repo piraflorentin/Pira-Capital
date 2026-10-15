@@ -43,14 +43,15 @@ async function live(){
     const r=await fetch("https://www.cnbc.com/id/100003114/device/rss/rss.html");
     if(!r.ok)throw new Error(r.status);
     const xml=new DOMParser().parseFromString(await r.text(),"text/xml");
-    const items=Array.from(xml.querySelectorAll("item")).slice(0,20).map(it=>({
+    const items=Array.from(xml.querySelectorAll("item")).slice(0,45).map(it=>({
       title:(it.querySelector("title")||{}).textContent||"",
       link:(it.querySelector("link")||{}).textContent||"",
       date:(it.querySelector("pubDate")||{}).textContent||"",
       desc:((it.querySelector("description")||{}).textContent||"").replace(/<[^>]+>/g,"").slice(0,300)}));
-    // feed order = CNBC's own ranking: never reorder, just take the top 14
-    LIVE_ITEMS=items.slice(0,14);
-    box.innerHTML=LIVE_ITEMS.map(storyHTML).join("")||"<p class='muted'>No headlines right now.</p>";
+    // feed order = CNBC's own ranking: never reorder.
+    // Keep a deep pool (up to 40) for the "News for my ETF" filter; show top 14 by default.
+    LIVE_ITEMS=items.slice(0,40);
+    box.innerHTML=LIVE_ITEMS.slice(0,14).map(storyHTML).join("")||"<p class='muted'>No headlines right now.</p>";
     restorePick();
   }catch(e){
     // fall back to baked snapshot
@@ -87,7 +88,7 @@ function renderETFNews(t){
   const hits=LIVE_ITEMS.map(s=>({s,m:storyForETF(s,labels)})).filter(x=>x.m.length);
   const drivers=found.rs.length?found.rs.map(r=>r.label).join(" · "):"general market";
   let html=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
-    <p class="small muted">This fund typically reacts to: <b>${drivers}</b>. ${hits.length} of ${LIVE_ITEMS.length} current headlines match.</p>`;
+    <p class="small muted">This fund typically reacts to: <b>${drivers}</b>. Searching the full live feed (${LIVE_ITEMS.length} stories) — <b>${hits.length} match${hits.length===1?"":"es"}</b>.</p>`;
   html+=hits.length?hits.map(x=>{
     const r=x.m[0];
     return `<div class="story"><h3><a href="${x.s.link}" target="_blank" rel="noopener">${x.s.title}</a></h3>
