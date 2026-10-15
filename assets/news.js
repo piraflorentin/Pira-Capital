@@ -70,8 +70,8 @@ async function baked(){
     $("#ecb").innerHTML=e.map(s=>`<div class="story"><h3><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></h3><div class="meta">${s.date||""} · <span class="pill info">Europe</span></div><div class="tags">${["VGK","EZU","FXE"].map(t=>`<span class="pill">${t}</span>`).join("")}</div></div>`).join("")||"<p class='muted'>—</p>";
   }catch(e){ $("#fed").innerHTML=$("#ecb").innerHTML="<p class='muted'>Snapshot unavailable.</p>"; }
 }
-const GEN_UP=["beat","record","surge","rally","jump","soar","approv","deal","stimulus","dovish","rate cut","breakthrough","upgrade","rebound","optimism","win","cleared","backing","ceasefire","resumes"];
-const GEN_DN=["miss","plunge","tumble","sell-off","selloff","rout","slump","fear","warning","ban","tariff","probe","lawsuit","downgrade","crash","falls","fall ","drop","slide","hike","hot ","fraud","default","recall","layoff","strike","war ","attack","threat","probe"];
+const GEN_UP=["beat","record","surge","rally","jump","soar","approv","deal","stimulus","dovish","rate cut","breakthrough","upgrade","rebound","optimism","win","cleared","backing","ceasefire","resumes","lifts","lift","boost","boosts","gains","raises","soars","jumps"];
+const GEN_DN=["miss","plunge","tumble","sell-off","selloff","rout","slump","fear","warning","ban","tariff","probe","lawsuit","downgrade","crash","falls","fall ","drop","hike","hot ","fraud","default","recall","layoff","strike","war ","attack","threat","sinks","sink","drags","weighs","weigh","halts","losses"];
 function toneOf(title,rule){
   const t=(title||"").toLowerCase();
   const src=(rule&&DIRS[rule.label])||rule||{};
@@ -145,7 +145,13 @@ async function renderETFNews(t){
     <p class="small muted">This fund typically reacts to: <b>${drivers}</b>. Gathering matches…</p>`;
   const hits=LIVE_ITEMS.map(s=>({s,m:storyForETF(s,labels)})).filter(x=>x.m.length);
   const web=await webFor(t);
-  const witems=(web.items||[]).map(w=>({s:w,m:impacts(w.title,"")}));
+  // Direct-impact filter: keep a web story only if it names the ticker
+  // or matches one of this ETF's own themes — the rest is noise about the issuer.
+  const tRe=new RegExp("\\b"+t+"\\b","i");
+  const witems=(web.items||[]).map(w=>({s:w,m:impacts(w.title,"")})).filter(x=>{
+    if(tRe.test(x.s.title))return true;
+    return x.m.some(r=>labels.indexOf(r.label)>=0);
+  });
   const scored=hits.concat(witems).map(x=>({x,tone:toneOf(x.s.title,x.m[0]||null)}));
   let html=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
     <p class="small muted">This fund typically reacts to: <b>${drivers}</b>.</p>`;
