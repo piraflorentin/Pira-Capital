@@ -1,0 +1,23 @@
+name: Weekly universe refresh
+on:
+  schedule:
+    # Sundays after the week's US close data settles
+    - cron: "5 22 * * 0"
+  workflow_dispatch:
+jobs:
+  universe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Refresh ETF universe (drop dead listings, admit candidates)
+        run: python3 scripts/refresh_universe.py
+      - name: Commit updated universe
+        run: |
+          git config user.name "etf-bot"
+          git config user.email "etf-bot@users.noreply.github.com"
+          git add data/universe.json data/tickers.txt assets/universe.js data/retired.json data/universe-report.json
+          git diff --cached --quiet || git commit -m "Weekly universe refresh"
+          git push

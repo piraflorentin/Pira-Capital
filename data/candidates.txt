@@ -1,0 +1,1 @@
+# One per line:  TICKER | Category  — validated automatically each Sunday, then admitted.

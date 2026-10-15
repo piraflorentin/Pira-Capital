@@ -37,13 +37,18 @@ async function fetchBatch(syms){
 }
 async function getQuotes(tickers){
   const now=Date.now(), need=[...new Set(tickers)].filter(t=>!(t in QCACHE.data)||now-QCACHE.ts[t]>TTL);
-  for(let i=0;i<need.length;i+=BATCH){
-    const chunk=need.slice(i,i+BATCH);
-    try{
-      const rows=await fetchBatch(chunk);
-      rows.forEach(q=>{
+  for(let round=0;round<2;round++){
+    const missing=need.filter(t=>!(t in QCACHE.data));
+    if(!missing.length)break;
+    if(round===1)await new Promise(r=>setTimeout(r,1500));
+    for(let i=0;i<missing.length;i+=BATCH){
+      const chunk=missing.slice(i,i+BATCH);
+      try{
+        const rows=await fetchBatch(chunk);
+        rows.forEach(q=>{
         const last=num(q.last);
         if(isNaN(last)) return;
+        if(q.code!==0||(q.countryCode&&q.countryCode!=="US")) return; // US listings only
         QCACHE.data[q.symbol]={price:last,chg:num(q.change),pct:num(q.change_pct),
           prev:num(q.previous_day_closing),open:num(q.open),high:num(q.high),low:num(q.low),
           vol:q.volume||"",volAlt:q.volume_alt||"",mcap:q.mktcapView||"",divy:q.dividendyield||"",
@@ -52,6 +57,7 @@ async function getQuotes(tickers){
         QCACHE.ts[q.symbol]=Date.now();
       });
     }catch(e){ console.warn("quote batch failed", e); }
+    }
   }
   const out={}; tickers.forEach(t=>{out[t]=QCACHE.data[t]||null;});
   return out;
