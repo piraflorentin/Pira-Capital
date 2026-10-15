@@ -110,6 +110,14 @@ async function statsTable(){
     const q=await getQuotes(A.map(a=>a.t));
     A.forEach(a=>{const el=document.querySelector(`[data-live="${a.t}"]`);if(el)el.textContent=q[a.t]?("$"+q[a.t].price.toFixed(2)):"—";});
   }catch(e){}
+  if(statsTable._t)clearInterval(statsTable._t);
+  statsTable._t=setInterval(async()=>{
+    if(document.hidden)return;
+    try{
+      const q=await getQuotes(A.map(a=>a.t));
+      A.forEach(a=>{const el=document.querySelector(`[data-live="${a.t}"]`);if(el&&q[a.t])el.textContent="$"+q[a.t].price.toFixed(2);});
+    }catch(e){}
+  },30000);
 }
 
 function chips(){
