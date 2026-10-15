@@ -169,13 +169,30 @@ function restorePick(){
   let t=null; try{t=localStorage.getItem("pira-etf");}catch(e){}
   if(t&&App.universe().some(x=>x.t===t))renderETFNews(t);
 }
+function resolveETF(q){
+  q=(q||"").trim(); if(!q)return null;
+  const U=App.universe(), qu=q.toUpperCase(), ql=q.toLowerCase();
+  let e=U.find(x=>x.t===qu); if(e)return {one:e};
+  e=U.find(x=>x.n.toLowerCase()===ql); if(e)return {one:e};
+  let ms=U.filter(x=>x.n.toLowerCase().indexOf(ql)===0||x.t.indexOf(qu)===0);
+  if(ms.length===1)return {one:ms[0]};
+  if(ms.length>1)return {many:ms.slice(0,8)};
+  ms=U.filter(x=>x.n.toLowerCase().indexOf(ql)>=0);
+  if(ms.length===1)return {one:ms[0]};
+  if(ms.length>1)return {many:ms.slice(0,8)};
+  return null;
+}
 function initPicker(){
   $("#etf-list").innerHTML=App.universe().map(e=>`<option value="${e.t}">${e.n}</option>`).join("");
-  const go=()=>{const v=$("#etfq").value.trim().toUpperCase();
-    const e=App.universe().find(x=>x.t===v);
-    if(!e){toast("ETF not found — pick from the suggestions.");return;}
-    $("#etfq").value=""; renderETFNews(e.t);
-    document.querySelector("#etfnews").scrollIntoView({behavior:"smooth",block:"nearest"});};
+  const go=()=>{
+    const r=resolveETF($("#etfq").value);
+    if(!r){toast("Nothing found — try a ticker like QQQ or a word like Nasdaq.");return;}
+    if(r.one){$("#etfq").value="";renderETFNews(r.one.t);
+      document.querySelector("#etfnews").scrollIntoView({behavior:"smooth",block:"nearest"});return;}
+    const box=$("#etfnews");
+    box.innerHTML="<p><b>Did you mean…</b></p><div class='pick'>"+r.many.map(e=>`<button class="btn ghost" data-pick="${e.t}">${e.t} · ${e.n}</button>`).join("")+"</div>";
+    box.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{$("#etfq").value="";renderETFNews(b.dataset.pick);});
+  };
   $("#etfgo").onclick=go;
   $("#etfq").addEventListener("keydown",e=>{if(e.key==="Enter")go();});
   $("#etfclear").onclick=()=>{const b=$("#etfnews");
