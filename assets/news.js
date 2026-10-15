@@ -5,7 +5,7 @@ const {$,nav,toast}=App; nav("news");
 let LIVE_ITEMS=[];
 
 const RULES=[
- {k:["federal reserve","fed ","fomc","powell","rate cut","rate hike","interest rate","inflation","cpi ","cpi(","ppi ","wholesale prices","consumer prices","pce ","disinflation","hawkish","dovish","lisa cook","discount rate"],label:"Rates & inflation",tick:["TLT","IEF","SHY","AGG","BND","TIP","XLF","XLRE","QQQ"],why:"Rate expectations reprice bonds first (long duration like TLT moves most), then growth stocks, banks and REITs."},
+ {k:["federal reserve","fed ","fomc","powell","rate cut","rate hike","interest rate","inflation","cpi ","cpi(","ppi ","wholesale prices","consumer prices","pce ","disinflation","hawkish","dovish","lisa cook","discount rate","tips","real yield","breakeven"],label:"Rates & inflation",tick:["TLT","IEF","SHY","AGG","BND","TIP","XLF","XLRE","QQQ"],why:"Rate expectations reprice bonds first (long duration like TLT moves most), then growth stocks, banks and REITs."},
  {k:["treasury","yields","yield","bond market","deficit","national debt","t-bill","auction"],label:"Bonds & yields",tick:["TLT","IEF","SHY","LQD","HYG","SGOV"],why:"Supply and demand for US debt sets yields; when yields rise, existing bond ETF prices fall."},
  {k:["oil","crude","opec","gasoline","shale","refiner","rig count","lng ","natural gas"],label:"Energy",tick:["XLE","VDE","USO","XOP","UNG"],why:"Crude and gas prices feed directly into energy-producer ETFs and futures-based funds like USO/UNG."},
  {k:["nvidia","tsmc","semiconductor","chip ","chips ","broadcom","asml","artificial intelligence"," ai ","ai boom","openai","datacenter","data center","cloud","qqq","nasdaq"],label:"Tech & semis",tick:["SOXX","SMH","XLK","VGT","QQQ","BOTZ"],why:"AI capex headlines reprice chipmakers and cloud first, then the whole Nasdaq-100 via QQQ."},
@@ -15,13 +15,21 @@ const RULES=[
  {k:["japan","yen","bank of japan","nikkei"],label:"Japan",tick:["EWJ","DXJ","FXY"],why:"BoJ policy and yen moves drive hedged (DXJ) and unhedged (EWJ) Japan exposure."},
  {k:["gold","safe haven","central bank buy","bullion","silver"],label:"Gold & safety",tick:["GLD","IAU","GDX","SLV"],why:"Fear and real-yield falls push investors toward gold (GLD) and miners (GDX)."},
  {k:["bitcoin","crypto","ethereum","coinbase","binance","sec bitcoin","etf bitcoin"],label:"Crypto-linked",tick:["IBIT","FBTC","GBTC","BITO","BLOK"],why:"Regulation and adoption news swings spot-bitcoin ETFs and crypto-equity funds."},
- {k:["jobs","unemployment","payrolls","gdp","recession","retail sales","consumer","ism ","pmi ","layoff","russell","dow jones","s&p"],label:"Growth & consumer",tick:["SPY","VOO","DIA","IWM","XLY"],why:"Growth surprises move the broad market (SPY) and cyclicals first; small caps (IWM) amplify."},
+ {k:["jobs","unemployment","payrolls","gdp","recession","retail sales","consumer","ism ","pmi ","layoff","russell","dow jones","s&p","total market","total stock","broad market"],label:"Growth & consumer",tick:["SPY","VOO","DIA","IWM","XLY"],why:"Growth surprises move the broad market (SPY) and cyclicals first; small caps (IWM) amplify."},
  {k:["war ","missile","strike","ceasefire","sanction","taiwan strait","iran","ukraine","gaza","defense spend","pentagon"],label:"Geopolitics & defence",tick:["GLD","USO","ITA","PPA","SHV"],why:"Escalation lifts oil, gold and defence contractors while cash-like SHV cushions."},
  {k:["housing","home price","rent ","eviction"],label:"Housing",tick:["XHB","VNQ","ITB"],why:"Prices and starts feed homebuilders and residential REITs."},
  {k:["drug","fda","vaccine","obesity drug","medicare","hospital"],label:"Health care",tick:["XLV","XBI","IBB"],why:"Approvals and pricing policy swing pharma and biotech ETFs."},
  {k:["dollar","dxy","currency","forex","devaluation"],label:"Dollar",tick:["UUP","GLD","EEM","FXE"],why:"A strong dollar typically pressures gold, EM equities and foreign-currency ETFs."},
  {k:["india","mexico","brazil","emerging market","latin america"],label:"Emerging markets",tick:["EEM","VWO","INDA","EWZ","EWW"],why:"Country-specific politics and commodities swing single-country EM ETFs."},
- {k:["earnings","profit beat","record profit","guidance","wall street","s&p"],label:"Earnings",tick:["SPY","QQQ","XLC","XLY"],why:"Big-tech earnings steer QQQ and communication/discretionary sectors, then the broad index."}
+ {k:["earnings","profit beat","record profit","guidance","wall street","s&p"],label:"Earnings",tick:["SPY","QQQ","XLC","XLY"],why:"Big-tech earnings steer QQQ and communication/discretionary sectors, then the broad index."},
+ {k:["solar","wind farm","clean energy","renewable","hydrogen","carbon tax","emissions","climate","power grid","green subsid"],label:"Clean energy",tick:["TAN","ICLN","QCLN","PBW","FAN","ACES"],why:"Subsidies, power prices and interest rates decide clean-energy economics — policy headlines swing the whole chain at once."},
+ {k:["uranium","nuclear","reactor","smr ","cameco","kazatomprom"],label:"Nuclear & uranium",tick:["URA","URNM"],why:"Reactor restarts, new-build policy and long-term contract prices drive uranium miners."},
+ {k:["lithium","batteries","battery","solid-state","cobalt","nickel"],label:"Batteries & lithium",tick:["LIT","BATT","REMX"],why:"EV demand and lithium chemical prices set margins — deficits ignite, oversupply crushes."},
+ {k:["copper","gold miner","silver miner","mining stocks","metals prices","precious metals"],label:"Metals & miners",tick:["COPX","PICK","GDX","GDXJ","SIL","SLX"],why:"Miners amplify metal prices through operating leverage; energy and labor costs decide who keeps the upside."},
+ {k:["reit","reits","landlord","office vacancy","logistics property","real estate"],label:"Property & REITs",tick:["VNQ","SCHH","IYR","RWR","REET","REZ","HOMZ"],why:"Rates set the discount rate on rents: cuts lift property values, while occupancy and refinancing decide who survives."},
+ {k:["dividend","buyback","payout ratio","aristocrat"],label:"Dividends",tick:["VIG","VYM","SCHD","DVY","HDV","SPYD","SDY","DGRO","NOBL"],why:"Payout growth lifts dividend funds; surging bond yields steal their income appeal, cuts sink them."},
+ {k:["vix","volatility index","fear gauge","panic selling","market crash","circuit breaker"],label:"Volatility",tick:["VIXY","UVXY","VXX"],why:"The fear gauge spikes on panic and bleeds on calm — a short-term hedge, not a holding; futures decay eats it daily."},
+ {k:["brazil","mexico","chile","peru","argentina","greece","canada","australia","indonesia","philippines","singapore","malaysia","thailand","south africa","poland","turkey","saudi","israel"],label:"Single-country markets",tick:["EWZ","EWW","EWC","EWA","ARGT","GREK","ECH","EPU","EIDO","EPHE","EWS","EWM","FLIN"],why:"Local politics, currency and commodities swing single-country funds far harder than global headlines imply."}
 ];
 function impacts(title,desc){
   const t=((title||"")+" "+(desc||"")).toLowerCase(), out=[];
@@ -89,7 +97,14 @@ const DIRS={
  "China & trade":{up:["stimulus","deal","talks","eases","rebound","support"],down:["tariff","ban","crackdown","probe","sanction","warning","slump"]},
  "Geopolitics & defence":{up:["ceasefire","deal","talks","peace"],down:["strike","war","missile","attack","threat","sanction"]},
  "Earnings":{up:["beat","record","raises","upgrade","strong","growth"],down:["miss","warning","weak","downgrade","slump","cuts"]},
- "Crypto-linked":{up:["approv","adoption","record","surge","rally","inflow","reserve"],down:["ban","crackdown","hack","lawsuit","plunge","crash","outflow","fraud"]}
+ "Crypto-linked":{up:["approv","adoption","record","surge","rally","inflow","reserve"],down:["ban","crackdown","hack","lawsuit","plunge","crash","outflow","fraud"]},
+ "Clean energy":{up:["subsid","approv","deal","record","demand","climate deal"],down:["repeal","cut subsid","oversupply","bankrupt","tariff","slowdown"]},
+ "Nuclear & uranium":{up:["approv","restart","deal","contract","demand","record"],down:["shutdown","accident","delay","opposition"]},
+ "Batteries & lithium":{up:["deficit","shortage","deal","demand","record"],down:["oversupply","glut","price crash","slowdown","weak demand"]},
+ "Metals & miners":{up:["record","surge","shortage","deficit","strike"],down:["slump","plunge","costs","weak demand","slowdown"]},
+ "Property & REITs":{up:["rate cut","dovish","rent growth","occupancy","deal","upgrade"],down:["rate hike","vacanc","default","downgrade","oversupply"]},
+ "Dividends":{up:["hike","raises","record","growth"],down:["cut","suspend","omit","rotation"]},
+ "Volatility":{up:["panic","fear","crash","sell-off","spike","surge"],down:["calm","complacency","record low","rally"]}
 };
 /* ---- News for my ETF ---- */
 function rulesFor(t){
@@ -120,7 +135,7 @@ function groupByLabel(arr){
 }
 function groupHTML(gr,t){
   return gr.map(g=>{
-    const why=g.rule?g.rule.why:"Directly about "+t+" — read for sentiment, flows and anything that changes its outlook.";
+    const why=g.rule?g.rule.why:(`Names ${t} directly — check it against the drivers above (rates, earnings, flows, holdings). Pieces with no new facts are usually sentiment noise and rarely move the price.`);
     const rows=g.items.map(s=>`<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a><div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div></div>`).join("");
     return `<div class="story"><div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"}</span></div>
       <p class="small" style="margin:6px 0"><b>What it means for ${t}:</b> ${why}</p>${rows}</div>`;
@@ -141,6 +156,8 @@ async function renderETFNews(t){
   if(!found){box.innerHTML="<p class='muted'>ETF not found — pick from the suggestions.</p>";return;}
   const labels=found.rs.map(r=>r.label);
   const drivers=found.rs.length?found.rs.map(r=>r.label).join(" · "):"general market";
+  const warn=(["Leveraged Bull","Inverse Bear","Volatility"].indexOf(found.e.c)>=0)
+    ?`<p class="small" style="margin:6px 0;padding:8px 12px;background:#fdf6e3;border:1px solid #ecd9a0;border-radius:9px">⚠️ <b>Daily-reset product:</b> leverage and futures decay make multi-day moves diverge from the underlying — size accordingly.</p>`:"";
   box.innerHTML=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
     <p class="small muted">This fund typically reacts to: <b>${drivers}</b>. Gathering matches…</p>`;
   const hits=LIVE_ITEMS.map(s=>({s,m:storyForETF(s,labels)})).filter(x=>x.m.length);
@@ -154,7 +171,7 @@ async function renderETFNews(t){
   });
   const scored=hits.concat(witems).map(x=>({x,tone:toneOf(x.s.title,x.m[0]||null)}));
   let html=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
-    <p class="small muted">This fund typically reacts to: <b>${drivers}</b>.</p>`;
+    <p class="small muted">This fund typically reacts to: <b>${drivers}</b>.</p>${warn}`;
   html+=verdictHTML(scored,t);
   if(hits.length){
     html+=`<h3 style="margin-top:10px">📰 From the live feed <span class="pill info">${hits.length} of ${LIVE_ITEMS.length}</span></h3>`;
