@@ -20,6 +20,6 @@ jobs:
         run: |
           git config user.name "etf-bot"
           git config user.email "etf-bot@users.noreply.github.com"
-          git add data/history data/news-daily.json
+          git add data/history data/news-daily.json data/etf-news.json
           git diff --cached --quiet || git commit -m "Daily market data refresh"
           git push
