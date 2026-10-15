@@ -103,6 +103,8 @@ function openModal(t){
       <div><small>Market cap</small><b>${q.mcap||"—"}</b></div>
       <div><small>52-week range</small><b>${q.ylo!=null&&!isNaN(q.ylo)?("$"+q.ylo.toFixed(2)+" – $"+q.yhi.toFixed(2)):"—"}</b></div>
       <div><small>Dividend yield</small><b>${q.divy||"—"}</b></div>
+      <div><small>Risk class (SRI 1–7)</small><b data-risk="sri">…</b></div>
+      <div><small>Volatility (ann.)</small><b data-risk="vol">…</b></div>
     </div>
     <p><a class="btn" href="${cnbcLink(e.t)}" target="_blank" rel="noopener">Live quote on CNBC ↗</a>
     ${iss?` <a class="btn ghost" href="${iss}" target="_blank" rel="noopener">Issuer factsheet ↗</a>`:""}
@@ -110,6 +112,23 @@ function openModal(t){
     <p class="small muted">Price return shown. Distributions/dividends are not included in day %. Figures stream live from market data; history powers the <a href="compare.html">Compare</a> and <a href="forecast.html">Forecast</a> pages.</p>`;
   $("#modal").classList.add("open");
   $("#mfav").addEventListener("click",()=>{toggleFav(t);openModal(t);});
+  fillRisk(t);
+}
+
+async function fillRisk(t){
+  try{
+    const h=await App.getHistory(t), rows=h.rows;
+    if(!rows||rows.length<60)return;
+    const c=rows.map(r=>parseFloat(r[1]));
+    const w=[]; for(let i=5;i<c.length;i+=5)w.push(Math.log(c[i]/c[i-5])); // weekly returns
+    const m=w.reduce((a,b)=>a+b,0)/w.length;
+    const sd=Math.sqrt(w.reduce((a,b)=>a+(b-m)*(b-m),0)/(w.length-1));
+    const vol=sd*Math.sqrt(52)*100; // annualized %
+    const sri=vol<0.5?1:vol<5?2:vol<12?3:vol<20?4:vol<30?5:vol<80?6:7;
+    const sriEl=document.querySelector('[data-risk="sri"]'), volEl=document.querySelector('[data-risk="vol"]');
+    if(sriEl)sriEl.innerHTML=`${sri} / 7 <span class="small muted" title="Approximation of the EU SRI scale from 5y price volatility. The official figure is in the issuer KIID.">≈</span>`;
+    if(volEl)volEl.textContent="≈ "+vol.toFixed(1)+"% / yr";
+  }catch(e){ /* history unavailable — placeholders stay */ }
 }
 
 async function hero(){
@@ -147,9 +166,9 @@ function init(){
   $("#mx").addEventListener("click",()=>$("#modal").classList.remove("open"));
   $("#modal").addEventListener("click",e=>{if(e.target.id==="modal")$("#modal").classList.remove("open");});
   render(); hero();
-  setInterval(async()=>{ // refresh current page every 2 min
+  setInterval(async()=>{ // refresh current page every 60s
     Object.keys(S.quotes).forEach(k=>delete S.quotes[k]); await render();
-  },120000);
+  },60000);
 }
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",init):init();
 })();
