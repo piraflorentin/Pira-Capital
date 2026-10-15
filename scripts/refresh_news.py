@@ -4,7 +4,7 @@ Run:  python3 scripts/refresh_news.py
 Daily: .github/workflows/refresh.yml runs this every weekday.
 Browser shows this baked file (always works) + live CNBC headlines on top.
 """
-import json, os, re, time, html, datetime, urllib.request, xml.etree.ElementTree as ET
+import json, os, re, sys, time, html, datetime, urllib.request, xml.etree.ElementTree as ET
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UA = {"User-Agent": "Mozilla/5.0"}
@@ -22,6 +22,26 @@ def etf_list():
         with open(os.path.join(BASE, "data", "tickers.txt")) as f:
             return [l.strip() for l in f if l.strip()]
     except Exception:
+        return []
+
+
+def watched_tickers():
+    """Tickers real users currently favorite (for the hourly refresh)."""
+    try:
+        sys.path.insert(0, os.path.join(BASE, "scripts"))
+        import sb as _sb
+        if not (_sb.URL and _sb.KEY):
+            return []
+        favs = set()
+        for s in _sb.rest_get("user_state", "state"):
+            try:
+                favs.update(json.loads((s.get("state") or {}).get("pira-favs") or "[]"))
+            except Exception:
+                pass
+        tickers = [l.strip() for l in open(os.path.join(BASE, "data", "tickers.txt")).read().split()]
+        return [t for t in favs if t in tickers]
+    except Exception as e:
+        print("watched_tickers failed:", e)
         return []
 
 
@@ -98,18 +118,29 @@ def fetch(name, url):
 
 
 def main():
+    favs_only = "--favs-only" in sys.argv
     out = {"asof": datetime.date.today().isoformat(), "sources": {}}
-    for name, url in FEEDS.items():
+    todo = watched_tickers() if favs_only else etf_list()
+    if favs_only and not todo:
+        print("no watched ETFs, nothing to do")
+        return
+    if favs_only:
         try:
-            out["sources"][name] = fetch(name, url)
-            print(name, len(out["sources"][name]), "items")
-        except Exception as e:
-            print(name, "FAILED:", e)
-            out["sources"][name] = []
-        time.sleep(1)
-    # per-ETF web scan (lazy file: only fetched when a visitor picks an ETF)
-    etfnews = {}
-    for i, t in enumerate(etf_list()):
+            prev = json.load(open(os.path.join(BASE, "data", "etf-news.json")))
+            etfnews = prev.get("etf", {})
+        except Exception:
+            etfnews = {}
+    else:
+        for name, url in FEEDS.items():
+            try:
+                out["sources"][name] = fetch(name, url)
+                print(name, len(out["sources"][name]), "items")
+            except Exception as e:
+                print(name, "FAILED:", e)
+                out["sources"][name] = []
+            time.sleep(1)
+        etfnews = {}
+    for i, t in enumerate(todo):
         items = []
         try:
             items = etf_scan_bing(t) or etf_scan_google(t)
@@ -127,6 +158,8 @@ def main():
     json.dump({"asof": datetime.date.today().isoformat(), "etf": etfnews},
               open(os.path.join(BASE, "data", "etf-news.json"), "w"))
     print("etf-news.json ETFs covered:", len(etfnews))
+    if favs_only:
+        return
     fp = os.path.join(BASE, "data", "news-daily.json")
     json.dump(out, open(fp, "w"))
     print("wrote", fp)

@@ -1,0 +1,26 @@
+name: Watched-ETF news refresh
+on:
+  schedule:
+    # Hourly on weekdays while markets are open (fresh web news for watched funds)
+    - cron: "15 13-21 * * 1-5"
+  workflow_dispatch:
+jobs:
+  favscan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rescan web news for watched ETFs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python3 scripts/refresh_news.py --favs-only
+      - name: Commit updated scan
+        run: |
+          git config user.name "etf-bot"
+          git config user.email "etf-bot@users.noreply.github.com"
+          git add data/etf-news.json
+          git diff --cached --quiet || git commit -m "Hourly watched-ETF news refresh"
+          git push
