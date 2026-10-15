@@ -23,7 +23,7 @@ python3 -m http.server 8000
 | Live price + day % (home, modals) | CNBC Quote API (free, CORS-enabled) | Every page visit + every 2 min while open |
 | Live headlines (news page) | CNBC RSS (CORS-enabled) | Every visit, fallback to snapshot |
 | 5-year history (compare/forecast) | Nasdaq Historical API snapshots in `data/history/` | `scripts/fetch_history.py`, daily via GitHub Action |
-| Official Fed/ECB releases | `data/news-daily.json` | `scripts/refresh_news.py`, daily via GitHub Action |
+| Official Fed/ECB releases + per-ETF web scan | `data/news-daily.json` | `scripts/refresh_news.py`, daily via GitHub Action |
 
 ## Manual refresh
 
