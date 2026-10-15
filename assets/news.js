@@ -19,6 +19,8 @@ const RULES=[
  {k:["war ","missile","strike","ceasefire","sanction","taiwan strait","iran","ukraine","gaza","defense spend","pentagon"],label:"Geopolitics & defence",tick:["GLD","USO","ITA","PPA","SHV"],why:"Escalation lifts oil, gold and defence contractors while cash-like SHV cushions."},
  {k:["housing","home price","rent ","eviction"],label:"Housing",tick:["XHB","VNQ","ITB"],why:"Prices and starts feed homebuilders and residential REITs."},
  {k:["drug","fda","vaccine","obesity drug","medicare","hospital"],label:"Health care",tick:["XLV","XBI","IBB"],why:"Approvals and pricing policy swing pharma and biotech ETFs."},
+ {k:["staples","walmart","costco","procter","household products","grocery","food prices"],label:"Consumer staples",tick:["VDC","XLP","FSTA"],why:"Staples are defensive: steady demand cushions sell-offs, but they lag raging bull markets. Watch Walmart/Costco earnings as the sector pulse."},
+ {k:["utilities","utility bills","power grid operator","regulated utility"],label:"Utilities",tick:["VPU","XLU","FUTY"],why:"Bond-like equities: rate cuts lift them, yield spikes punish them; the economic cycle matters less than for cyclicals."},
  {k:["dollar","dxy","currency","forex","devaluation"],label:"Dollar",tick:["UUP","GLD","EEM","FXE"],why:"A strong dollar typically pressures gold, EM equities and foreign-currency ETFs."},
  {k:["india","mexico","brazil","emerging market","latin america"],label:"Emerging markets",tick:["EEM","VWO","INDA","EWZ","EWW"],why:"Country-specific politics and commodities swing single-country EM ETFs."},
  {k:["earnings","profit beat","record profit","guidance","wall street","s&p"],label:"Earnings",tick:["SPY","QQQ","XLC","XLY"],why:"Big-tech earnings steer QQQ and communication/discretionary sectors, then the broad index."},
@@ -106,6 +108,10 @@ const DIRS={
  "Dividends":{up:["hike","raises","record","growth"],down:["cut","suspend","omit","rotation"]},
  "Volatility":{up:["panic","fear","crash","sell-off","spike","surge"],down:["calm","complacency","record low","rally"]}
 };
+const LENS={
+ "Staples":"Staples twist: this fund is defensive — expect it to fall less in sell-offs and rise less in rallies. Strong growth news is mildly negative for its relative edge.",
+ "Utilities":"Utilities twist: regulated earnings and high dividends make it bond-like — it cheers rate cuts, suffers rate spikes, and mostly ignores the economic cycle.",
+ "Health Care":"Health-care twist: demand holds up even in recessions, cushioning drawdowns — drug-pricing politics, not GDP, is the real swing factor."};
 /* ---- News for my ETF ---- */
 function rulesFor(t){
   const e=App.universe().find(x=>x.t===t); if(!e)return null;
@@ -134,8 +140,10 @@ function groupByLabel(arr){
   return Object.keys(g).map(k=>({label:k,rule:g[k].rule,items:g[k].items}));
 }
 function groupHTML(gr,t){
+  const cat=((App.universe().find(e=>e.t===t)||{}).c)||"";
   return gr.map(g=>{
-    const why=g.rule?g.rule.why:(`Names ${t} directly — check it against the drivers above (rates, earnings, flows, holdings). Pieces with no new facts are usually sentiment noise and rarely move the price.`);
+    let why=g.rule?g.rule.why:(`Names ${t} directly — check it against the drivers above (rates, earnings, flows, holdings). Pieces with no new facts are usually sentiment noise and rarely move the price.`);
+    if(g.rule&&LENS[cat])why+=" "+LENS[cat];
     const rows=g.items.map(s=>{
       const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div>`;
       const desc=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
