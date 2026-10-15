@@ -38,6 +38,11 @@
     <div class="status small"><span class="dot" id="dot"></span><span id="status">Connecting to live market data…</span><span class="muted" id="stamp"></span></div>
   </div>
 
+  <div class="card" id="favcard" style="display:none">
+    <h2>⭐ My favorites <span class="small muted">— pinned by you, stored in this browser</span></h2>
+    <div class="tblwrap"><table><thead><tr><th class="l">ETF</th><th>Price</th><th>Day chg</th><th>Day %</th><th>Mkt cap</th><th class="l"></th></tr></thead><tbody id="favrows"></tbody></table></div>
+  </div>
+
   <div class="card">
     <div class="controls">
       <input type="search" id="q" placeholder="Search name or ticker — e.g. QQQ, gold, treasury…">
@@ -46,8 +51,8 @@
       <select id="sort"><option value="pct">Sort: day % ↓</option><option value="pctAsc">Sort: day % ↑</option><option value="price">Sort: price ↓</option><option value="mcap">Sort: market cap ↓</option><option value="name">Sort: name A–Z</option></select>
     </div>
     <div class="tblwrap"><table>
-      <thead><tr><th class="l">#</th><th class="l">ETF</th><th>Price</th><th>Day chg</th><th>Day %</th><th>Mkt cap</th><th>Div yield</th><th class="l">About</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="8" class="muted">Loading live quotes…</td></tr></tbody>
+      <thead><tr><th class="l">★</th><th class="l">#</th><th class="l">ETF</th><th>Price</th><th>Day chg</th><th>Day %</th><th>Mkt cap</th><th>Div yield</th><th class="l">About</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="9" class="muted">Loading live quotes…</td></tr></tbody>
     </table></div>
     <div class="pager"><button class="btn ghost" id="prev">← Prev</button><span id="pg" class="small muted"></span><button class="btn ghost" id="next">Next →</button></div>
   </div>

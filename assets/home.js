@@ -4,7 +4,11 @@
 const {$,universe,categories,fmt$,fmtPct,pill,num,getQuotes,issuerFor,cnbcLink,nav,toast,debounce}=App;
 nav("home");
 const PER=50;
-const S={page:0,q:"",cat:"",dir:"",sort:"pct",list:universe(),quotes:{},allLoaded:false};
+const S={page:0,q:"",cat:"",dir:"",sort:"pct",list:universe(),quotes:{},allLoaded:false,
+  favs:new Set(JSON.parse(localStorage.getItem("pira-favs")||"[]"))};
+function saveFavs(){try{localStorage.setItem("pira-favs",JSON.stringify([...S.favs]));}catch(e){}}
+function starBtn(t){const on=S.favs.has(t);
+  return `<button data-fav="${t}" title="${on?"Remove from":"Add to"} favorites" style="border:none;background:none;font-size:1.15rem;cursor:pointer">${on?"★":"☆"}</button>`;}
 
 function mcapNum(s){ if(!s)return NaN; const m=String(s).replace(/,/g,"").match(/([\d.]+)\s*([TBMK]?)/i); if(!m)return NaN;
   const f={T:1e12,B:1e9,M:1e6,K:1e3,"":1}; return parseFloat(m[1])*(f[(m[2]||"").toUpperCase()]||1); }
@@ -31,11 +35,12 @@ async function render(){
   const slice=L.slice(S.page*PER,S.page*PER+PER);
   $("#pg").textContent=`Page ${S.page+1} of ${pages} · ${L.length} ETFs`;
   const tb=$("#rows");
-  tb.innerHTML=`<tr><td colspan="8" class="muted">Loading live quotes for this page…</td></tr>`;
+  tb.innerHTML=`<tr><td colspan="9" class="muted">Loading live quotes for this page…</td></tr>`;
   Object.assign(S.quotes,await getQuotes(slice.map(e=>e.t)));
   tb.innerHTML=slice.map((e,i)=>{
     const q=S.quotes[e.t]||{}, p=q.pct, up=p>0, dn=p<0;
     return `<tr data-t="${e.t}" style="cursor:pointer">
+      <td class="l">${starBtn(e.t)}</td>
       <td class="l muted">${S.page*PER+i+1}</td>
       <td class="l"><div class="etfcell"><div class="avatar">${initials(e.t)}</div><div><b>${e.n}</b><span>${e.t} · ${e.c}${q.exch?" · "+q.exch:""}</span></div></div></td>
       <td class="num">${fmt$(q.price)}</td>
@@ -44,9 +49,37 @@ async function render(){
       <td class="num">${q.mcap||"—"}</td>
       <td class="num">${q.divy||"—"}</td>
       <td class="l"><button class="btn ghost" data-info="${e.t}">Profile</button></td></tr>`;
-  }).join("")||`<tr><td colspan="8" class="muted">No ETFs match your filters.</td></tr>`;
+  }).join("")||`<tr><td colspan="9" class="muted">No ETFs match your filters.</td></tr>`;
   tb.querySelectorAll("tr[data-t]").forEach(tr=>tr.addEventListener("click",ev=>{openModal(tr.dataset.t);}));
+  tb.querySelectorAll("[data-fav]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();toggleFav(b.dataset.fav);}));
   $("#stamp").textContent=" · Updated "+new Date().toLocaleTimeString()+" · "+App.marketNote();
+  renderFavs();
+}
+
+function toggleFav(t){
+  S.favs.has(t)?S.favs.delete(t):S.favs.add(t);
+  saveFavs(); render();
+  toast(S.favs.has(t)?t+" added to favorites.":t+" removed from favorites.");
+}
+
+async function renderFavs(){
+  const card=$("#favcard"), tb=$("#favrows");
+  if(!S.favs.size){card.style.display="none";return;}
+  card.style.display="block";
+  const list=[...S.favs].map(t=>universe().find(e=>e.t===t)).filter(Boolean);
+  Object.assign(S.quotes,await getQuotes(list.map(e=>e.t)));
+  tb.innerHTML=list.map(e=>{
+    const q=S.quotes[e.t]||{}, p=q.pct, up=p>0, dn=p<0;
+    return `<tr data-t="${e.t}" style="cursor:pointer">
+      <td class="l"><div class="etfcell"><div class="avatar">${initials(e.t)}</div><div><b>${e.n}</b><span>${e.t} · ${e.c}</span></div></div></td>
+      <td class="num">${fmt$(q.price)}</td>
+      <td class="num ${up?"pos":dn?"neg":""}">${q.chg==null||isNaN(q.chg)?"—":(q.chg>0?"+":"")+q.chg.toFixed(2)}</td>
+      <td>${pill(p)}</td>
+      <td class="num">${q.mcap||"—"}</td>
+      <td class="l"><button class="btn ghost" data-unfav="${e.t}">✕ Remove</button></td></tr>`;
+  }).join("");
+  tb.querySelectorAll("tr[data-t]").forEach(tr=>tr.addEventListener("click",()=>openModal(tr.dataset.t)));
+  tb.querySelectorAll("[data-unfav]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();toggleFav(b.dataset.unfav);}));
 }
 
 function aboutText(e){
@@ -72,9 +105,11 @@ function openModal(t){
       <div><small>Dividend yield</small><b>${q.divy||"—"}</b></div>
     </div>
     <p><a class="btn" href="${cnbcLink(e.t)}" target="_blank" rel="noopener">Live quote on CNBC ↗</a>
-    ${iss?` <a class="btn ghost" href="${iss}" target="_blank" rel="noopener">Issuer factsheet ↗</a>`:""}</p>
+    ${iss?` <a class="btn ghost" href="${iss}" target="_blank" rel="noopener">Issuer factsheet ↗</a>`:""}
+    <button class="btn ghost" id="mfav">${S.favs.has(e.t)?"★ Favorited":"☆ Add to favorites"}</button></p>
     <p class="small muted">Price return shown. Distributions/dividends are not included in day %. Figures stream live from market data; history powers the <a href="compare.html">Compare</a> and <a href="forecast.html">Forecast</a> pages.</p>`;
   $("#modal").classList.add("open");
+  $("#mfav").addEventListener("click",()=>{toggleFav(t);openModal(t);});
 }
 
 async function hero(){
