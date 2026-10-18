@@ -90,7 +90,7 @@ function toneOf(title,rule){
   return u&&!d?1:(d&&!u?-1:0);
 }
 const DIRS={
- "Rates & inflation":{up:["rate cut","cuts rates","dovish","pause","cooling","cools","soft landing"],down:["rate hike","hikes","hawkish","hot","sticky","deficit","downgrade"]},
+ "Rates & inflation":{up:["rate cut","cuts rates","dovish","pause","cooling","cools","soft landing","eases","slows","softer","below forecast","below estimates"],down:["rate hike","hikes","hawkish","hot","sticky","deficit","downgrade","prices jumped","prices rose","prices climb","prices rise","inflation jumped","inflation rose","hot inflation","accelerat"]},
  "Bonds & yields":{up:["rate cut","dovish","flee to safety","flight to safety","yields slide","yields fall","yields drop","cooling","slowdown"],down:["rate hike","hawkish","yields jump","yields rise","yields climb","auction","deficit","hot"]},
  "Energy":{up:["surge","jump","soar","sanction","embargo","strike","opec cut","disruption"],down:["plunge","slump","glut","oversupply","inventory","slowdown","record output"]},
  "Tech & semis":{up:["beat","record","boom","breakthrough","deal","approv","raises","upgrade","demand"],down:["miss","sell-off","selloff","rout","ban","probe","slump","warning","layoff","antitrust"]},
@@ -199,19 +199,44 @@ function groupHTML(gr,t,explained){
       <p class="small" style="margin:6px 0"><b>What it means for ${t}:</b> ${why}</p>${rows}</div>`;
   }).join("");
 }
-function verdictHTML(scored,t){
-  const pos=scored.filter(x=>x.tone>0).length, neg=scored.filter(x=>x.tone<0).length, neu=scored.length-pos-neg;
+function readOutHTML(scored,t,momo){
   if(!scored.length)return "";
-  const net=pos-neg;
-  const v=net>=1?["🟢 Leans positive","pos"]:net<=-1?["🔴 Leans negative","neg"]:["⚪ Mixed / neutral",""];
+  const direct=scored.filter(x=>x.direct), themed=scored.filter(x=>!x.direct);
+  const pos=scored.filter(x=>x.tone>0).length, neg=scored.filter(x=>x.tone<0).length, neu=scored.length-pos-neg;
+  let votes=0;
+  scored.forEach(x=>{votes+=x.tone>0?(x.direct?2:1):x.tone<0?(x.direct?-2:-1):0;});
+  const v=votes>=2?["🟢 Leans positive","pos"]:votes<=-2?["🔴 Leans negative","neg"]:["⚪ Mixed / neutral",""];
+  const byth={};
+  themed.forEach(x=>{const k=(x.x.m[0]&&x.x.m[0].label)||"General market";
+    if(!byth[k])byth[k]={n:0,up:0,dn:0};byth[k].n++;if(x.tone>0)byth[k].up++;if(x.tone<0)byth[k].dn++;});
+  const top=Object.keys(byth).sort((a,b)=>byth[b].n-byth[a].n).slice(0,2);
+  const items=[];
+  if(top.length){
+    items.push(`<b>What's moving it today:</b> ${top.map(k=>{
+      const first=themed.find(x=>((x.x.m[0]&&x.x.m[0].label)||"General market")===k);
+      const rule=first.x.m[0];
+      const why=rule&&rule.why?rule.why:"broad macro forces move nearly everything at once.";
+      return `${k} ×${byth[k].n} (${byth[k].up}▲ · ${byth[k].dn}▼) — ${why}`;}).join("<br>")}`);
+  }else{
+    items.push(`<b>What's moving it today:</b> no theme match — all signals reference ${t} directly or stay at the general-market level.`);
+  }
+  if(direct.length)items.push(`<b>Direct signals:</b> ${direct.length} ${direct.length===1?"story":"stories"} name ${t} in the headline — they carry double weight in the verdict.`);
+  if(momo){
+    const f=vv=>((vv>=0?"+":"")+(vv*100).toFixed(1)+"%");
+    const tape=momo.mtd>0.005?"up":momo.mtd<-0.005?"down":"flat";
+    const agree=(votes>=2&&tape==="up")||(votes<=-2&&tape==="down");
+    const clash=(votes>=2&&tape==="down")||(votes<=-2&&tape==="up");
+    items.push(`<b>Price check:</b> ${f(momo.mtd)} this month, ${momo.above?"above":"below"} its 50-day average${agree?" — news tone agrees with the tape.":clash?" — news tone and price trend disagree; one usually gives in within days.":`, while the tape is ${tape}.`}`);
+  }
   return `<div class="box base" style="border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#eef4ff;margin:10px 0">
-    <b>${v[0]} for ${t}</b> <span class="small muted">— rough read across ${scored.length} stories (${pos} positive · ${neg} negative · ${neu} neutral).</span>
-    <div class="small muted">Keyword-based gauge, not advice: one major story can outweigh several small ones, and markets often price news in before you read it.</div></div>`;
+    <b>${v[0]} for ${t}</b> <span class="small muted">— weighted read across ${scored.length} stories (${pos} ▲ · ${neg} ▼ · ${neu} • · direct mentions weigh double).</span>
+    <ul class="small" style="margin:8px 0 0;padding-left:18px">${items.map(i=>`<li style="margin:4px 0">${i}</li>`).join("")}</ul>
+    <div class="small muted" style="margin-top:6px">Keyword-based gauge from ${t}'s own theme map, not advice: one major story can outweigh several small ones, and markets often price news in before you read it.</div></div>`;
 }
-async function monthScoreHTML(t){
+async function momentumOf(t){
   try{
     const h=await App.getHistory(t), rows=h.rows;
-    if(!rows||rows.length<40)return "";
+    if(!rows||rows.length<40)return null;
     const closes=rows.map(r=>parseFloat(r[1]));
     const lp=rows[rows.length-1][0].split("/");
     let i=rows.length-1;
@@ -222,11 +247,14 @@ async function monthScoreHTML(t){
     let s50=0; for(let k=closes.length-50;k<closes.length;k++)s50+=closes[k]; s50/=50;
     let s=5+(mtd>0?1:-1)+(m1>0?1:-1)+(px>s50?1:-1);
     s+=(mtd>0.02?1:mtd<-0.02?-1:0)+(m1>0.05?1:m1<-0.05?-1:0);
-    s=Math.max(0,Math.min(10,Math.round(s)));
-    const f=v=>((v>=0?"+":"")+(v*100).toFixed(1)+"%");
-    const mood=s>=7?"strong month":s>=4?"steady":"weak month";
-    return `<div style="border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#f6f8fb;margin:10px 0"><b>📊 Month score ${s}/10</b> <span class="small muted">— ${mood}: MTD ${f(mtd)} · 1M ${f(m1)} · ${px>s50?"above":"below"} 50-day avg. Pure price-momentum gauge, recomputed automatically every day — not advice.</span></div>`;
-  }catch(e){return "";}
+    return {mtd:mtd,m1:m1,above:px>s50,s:Math.max(0,Math.min(10,Math.round(s)))};
+  }catch(e){return null;}
+}
+function monthScoreHTML(momo){
+  if(!momo)return "";
+  const f=v=>((v>=0?"+":"")+(v*100).toFixed(1)+"%");
+  const mood=momo.s>=7?"strong month":momo.s>=4?"steady":"weak month";
+  return `<div style="border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#f6f8fb;margin:10px 0"><b>📊 Month score ${momo.s}/10</b> <span class="small muted">— ${mood}: MTD ${f(momo.mtd)} · 1M ${f(momo.m1)} · ${momo.above?"above":"below"} 50-day avg. Pure price-momentum gauge, recomputed automatically every day — not advice.</span></div>`;
 }
 async function renderETFNews(t){
   const box=$("#etfnews");
@@ -247,15 +275,19 @@ async function renderETFNews(t){
     if(tRe.test(x.s.title))return true;
     return x.m.some(r=>labels.indexOf(r.label)>=0);
   });
-  const scored=hits.concat(witems).map(x=>({x,tone:toneOf(x.s.title,x.m[0]||null)}));
+  const scored=hits.concat(witems).map(x=>({
+    x:x,
+    tone:toneOf(x.s.title,x.m[0]||null),
+    direct:new RegExp("\\b"+t+"\\b","i").test(x.s.title)}));
   const explained={};
   const seen={};
   hits.forEach(x=>{seen[x.s.title.trim().toLowerCase()]=1;});
   const fresh=witems.filter(x=>!seen[x.s.title.trim().toLowerCase()]);
+  const momo=await momentumOf(t);
   let html=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
     <p class="small muted">This fund typically reacts to: <b>${drivers}</b>.</p>${warn}`;
-  html+=verdictHTML(scored,t);
-  html+=await monthScoreHTML(t);
+  html+=readOutHTML(scored,t,momo);
+  html+=monthScoreHTML(momo);
   if(hits.length){
     html+=`<h3 style="margin-top:10px">📰 From the live feed <span class="pill info">${hits.length} of ${LIVE_ITEMS.length}</span></h3>`;
     html+=groupHTML(groupByLabel(hits),t,explained);
