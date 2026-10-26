@@ -52,7 +52,7 @@ async function render(){
   }).join("")||`<tr><td colspan="9" class="muted">No ETFs match your filters.</td></tr>`;
   tb.querySelectorAll("tr[data-t]").forEach(tr=>tr.addEventListener("click",ev=>{openModal(tr.dataset.t);}));
   tb.querySelectorAll("[data-fav]").forEach(b=>b.addEventListener("click",ev=>{ev.stopPropagation();toggleFav(b.dataset.fav);}));
-  $("#stamp").textContent=" · Updated "+new Date().toLocaleTimeString()+" · "+App.marketNote();
+  $("#stamp").textContent=" · Updated "+new Date().toLocaleTimeString()+" · "+App.marketNote().label;
   renderFavs();
 }
 
@@ -119,11 +119,12 @@ function aboutText(e){
 function openModal(t){
   const e=S.list.find(x=>x.t===t)||universe().find(x=>x.t===t); if(!e)return;
   const q=S.quotes[t]||{}, nm=(q.name||e.n), iss=App.issuerFor(nm);
+  const open=App.marketNote().open;
   $("#mbody").innerHTML=`<div class="etfcell"><div class="avatar" style="width:44px;height:44px">${initials(e.t)}</div>
     <div><b style="font-size:1.15rem">${nm}</b><br><span>${e.t} · ${e.c}${q.exch?" · "+q.exch:""}</span></div></div>
     <p style="margin:12px 0">${aboutText(e)}</p>
     <div style="display:flex;gap:14px;align-items:baseline"><span style="font-size:1.7rem;font-weight:800">${fmt$(q.price)}</span>${pill(q.pct)}
-    <span class="small muted">${q.asof?("as of "+q.asof):""}</span></div>
+    <span class="small muted">${q.asof?((open?"as of ":"Last close · ")+q.asof):"quote unavailable"}</span></div>
     <div class="kv">
       <div><small>Day change</small><b class="${q.chg>0?"pos":q.chg<0?"neg":""}">${q.chg==null||isNaN(q.chg)?"—":(q.chg>0?"+":"")+q.chg.toFixed(2)+" ("+fmtPct(q.pct)+")"}</b></div>
       <div><small>Previous close</small><b>${fmt$(q.prev)}</b></div>
@@ -161,11 +162,16 @@ async function fillRisk(t){
 
 async function hero(){
   const q=await getQuotes(["SPY","QQQ","TLT","GLD"]);
-  const set=(id,v,s)=>{const pct=q[id]&&q[id].pct;
-    $("#k-"+v).innerHTML=q[id]?`${fmt$(q[id].price)} <span class="${pct>0?"pos":pct<0?"neg":""}" style="font-size:.9rem">${fmtPct(pct)}</span>`:"—";
-    $("#k-"+v+"-s").textContent=q[id]?("as of "+(q[id].asof||"last close")):"unavailable";};
+  const open=App.marketNote().open;
+  const set=(id,v,s)=>{
+    const pct=q[id]&&q[id].pct;
+    $("#k-"+v).innerHTML=q[id]?`${fmt$(q[id].price)} <span class="${pct>0?"pos":pct<0?"neg":""}" style="font-size:.9rem">${fmtPct(pct)}</span>`:"<span class='muted'>Unavailable</span>";
+    $("#k-"+v+"-s").textContent=q[id]?((open?"as of ":"Last close · ")+(q[id].asof||"latest available")):"live feed fetch failed";
+  };
   set("SPY","spy");set("QQQ","qqq");set("TLT","tlt");set("GLD","gld");
-  $("#status").textContent="Live market data connected — "+App.marketNote()+".";
+  const got=["SPY","QQQ","TLT","GLD"].filter(k=>q[k]).length;
+  $("#status").textContent="Live market data connected — "+App.marketNote().label+
+    (got<4?` (${got} of 4 featured quotes retrieved this visit)`:"")+".";
   // breadth in background: fetch everything, count advancers/decliners
   (async()=>{
     const all=universe().map(e=>e.t), have=new Set(Object.keys(S.quotes));
@@ -184,6 +190,7 @@ async function hero(){
 
 function init(){
   const cats=categories();
+  const nc=$("#ncount"); if(nc)nc.textContent=universe().length;
   $("#cat").innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option>${c}</option>`).join("");
   $("#q").addEventListener("input",debounce(e=>{S.q=e.target.value.trim();S.page=0;render();},250));
   $("#cat").addEventListener("change",e=>{S.cat=e.target.value;S.page=0;render();});

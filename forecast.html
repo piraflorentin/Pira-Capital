@@ -20,8 +20,8 @@
 </div></header>
 
 <section class="hero"><div class="wrap">
-  <h1>Forecast: <span class="gold">3 scenarios, 12 months</span></h1>
-  <p class="sub">Pick one ETF. We take its real 5-year history — growth rate, volatility, drawdowns, trend — and project three statistical paths for the next year: <b>bear</b>, <b>base</b> and <b>bull</b>. <span id="fc-stamp" class="small"></span></p>
+  <h1>Historical scenarios: <span class="gold">3 paths, 12 months</span></h1>
+  <p class="sub">Pick one ETF. We take its real history — growth rate, volatility, drawdowns, trend — and illustrate three statistical paths built from that past data: <b>bear</b>, <b>base</b> and <b>bull</b>. These are what-if sketches of history, not forecasts of what will happen. <span id="fc-stamp" class="small"></span></p>
 </div></section>
 
 <main class="wrap">
@@ -29,14 +29,15 @@
     <div class="controls">
       <input type="search" id="fcq" list="all-etfs2" placeholder="Choose 1 ETF — e.g. QQQ, TLT, GLD">
       <datalist id="all-etfs2"></datalist>
-      <button class="btn gold" id="go">Build forecast</button>
+      <button class="btn gold" id="go">Build scenarios</button>
     </div>
     <div class="pick" id="picked"></div>
     <div class="kv" id="keystats"></div>
   </div>
 
   <div class="card">
-    <h2>12-month scenario fan</h2>
+    <h2>12-month historical scenario fan</h2>
+    <p class="small muted" style="margin:2px 0 8px">Assumptions in one line: each path simply compounds the fund's own historical average month — attract a half-scale sustained surprise up (bull) or down (bear). Nothing about tomorrow's news is assumed.<br>What-if based on past prices — <b>illustration, not forecast</b>. Direction from the <a href="news.html">news analysis</a> is the complementary, forward-looking part.</p>
     <div class="legend"><span><i style="background:#c03535"></i>Bear</span><span><i style="background:#0b1f3a"></i>Base</span><span><i style="background:#0a8a4d"></i>Bull</span></div>
     <div style="position:relative"><canvas class="chart" id="fchart"></canvas></div>
     <div class="scen">
@@ -56,7 +57,7 @@
   </div>
 
   <div class="card"><h2>Month-by-month paths</h2>
-    <div class="tblwrap"><table><thead><tr><th class="l">Month</th><th>Bear</th><th>Base</th><th>Bull</th></tr></thead><tbody id="mtable"></tbody></table></div>
+    <div class="tblwrap"><table><thead><tr><th class="l">Month</th><th>Bear (past-data path)</th><th>Base</th><th>Bull (past-data path)</th></tr></thead><tbody id="mtable"></tbody></table></div>
     <p class="small muted"><b>Disclaimer:</b> hypothetical scenarios for education and portfolio planning. Not financial advice, not a recommendation. Past performance does not predict future returns. Leveraged/inverse ETFs reset daily and decay over holding periods — their long-run paths are especially uncertain.</p>
   </div>
 </main>

@@ -84,7 +84,7 @@ function stamp(id,txt){const e=$(id);if(e)e.textContent=txt;}
 function marketNote(){
   const n=new Date(), d=n.getDay(), m=n.getHours()*60+n.getMinutes()-240; // mins since 9:30 ET approx (UTC-4)
   const open=d>0&&d<6&&m>=0&&m<=390;
-  return open?"US market open — quotes live":"US market closed — showing last close";
+  return {open:open,label:open?"US market open — quotes live":"US market closed — showing last close"};
 }
 
 /* ---------- icon set (monochrome, stroke-based, colored via CSS) ---------- */

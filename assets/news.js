@@ -44,7 +44,7 @@ function storyHTML(s){
   const tick=im.length?`<div class="tags">${im[0].tick.map(t=>`<span class="pill">${t}</span>`).join("")}</div>
     <p class="small muted" style="margin:6px 0 0"><b>Why:</b> ${im[0].why}</p>`:"";
   return `<div class="story"><h3><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></h3>
-    <div class="meta">${s.date||""} · ${tags}</div>${s.desc?`<p class="small muted">${s.desc.slice(0,260)}</p>`:""}${tick}</div>`;
+    <div class="meta">${when(s.date)} · ${tags}</div>${s.desc?`<p class="small muted">${s.desc.slice(0,260)}</p>`:""}${tick}</div>`;
 }
 
 async function live(){
@@ -76,18 +76,77 @@ async function baked(){
     const j=await (await fetch("data/news-daily.json",{cache:"no-store"})).json();
     $("#news-stamp").textContent="Official snapshots: "+j.asof+".";
     const f=j.sources.fed||[], e=j.sources.ecb||[];
-    $("#fed").innerHTML=f.map(s=>`<div class="story"><h3><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></h3><div class="meta">${s.date||""} · <span class="pill info">Rates & inflation</span></div><div class="tags">${["TLT","IEF","AGG","XLF"].map(t=>`<span class="pill">${t}</span>`).join("")}</div></div>`).join("")||"<p class='muted'>—</p>";
-    $("#ecb").innerHTML=e.map(s=>`<div class="story"><h3><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></h3><div class="meta">${s.date||""} · <span class="pill info">Europe</span></div><div class="tags">${["VGK","EZU","FXE"].map(t=>`<span class="pill">${t}</span>`).join("")}</div></div>`).join("")||"<p class='muted'>—</p>";
+    $("#fed").innerHTML=f.map(s=>`<div class="story"><h3><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></h3><div class="meta">${when(s.date)} · <span class="pill info">Rates & inflation</span></div><div class="tags">${["TLT","IEF","AGG","XLF"].map(t=>`<span class="pill">${t}</span>`).join("")}</div></div>`).join("")||"<p class='muted'>—</p>";
+    $("#ecb").innerHTML=e.map(s=>`<div class="story"><h3><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></h3><div class="meta">${when(s.date)} · <span class="pill info">Europe</span></div><div class="tags">${["VGK","EZU","FXE"].map(t=>`<span class="pill">${t}</span>`).join("")}</div></div>`).join("")||"<p class='muted'>—</p>";
   }catch(e){ $("#fed").innerHTML=$("#ecb").innerHTML="<p class='muted'>Snapshot unavailable.</p>"; }
 }
 const GEN_UP=["beat","record","surge","rally","jump","soar","approv","deal","stimulus","dovish","rate cut","breakthrough","upgrade","rebound","optimism","win","cleared","backing","ceasefire","resumes","lifts","lift","boost","boosts","gains","raises","soars","jumps"];
 const GEN_DN=["miss","plunge","tumble","sell-off","selloff","rout","slump","fear","warning","ban","tariff","probe","lawsuit","downgrade","crash","falls","fall ","drop","hike","hot ","fraud","default","recall","layoff","strike","war ","attack","threat","sinks","sink","drags","weighs","weigh","halts","losses"];
-function toneOf(title,rule){
+function assess(title,rule){
   const t=(title||"").toLowerCase();
   const src=(rule&&DIRS[rule.label])||rule||{};
   const U=src.up||GEN_UP, D=src.down||GEN_DN;
   const u=U.some(k=>t.indexOf(k)>=0), d=D.some(k=>t.indexOf(k)>=0);
+  if(u&&d)return {tone:0,mix:true};      // conflicting cues → Mixed
+  if(u)return {tone:1};
+  if(d)return {tone:-1};
+  return {tone:0,unclear:true};          // connected but no direction cue
+}
+function marketToneOf(title){
+  const t=(title||"").toLowerCase();
+  const u=GEN_UP.some(k=>t.indexOf(k)>=0), d=GEN_DN.some(k=>t.indexOf(k)>=0);
   return u&&!d?1:(d&&!u?-1:0);
+}
+/* Article mood vs fund effect — they are not the same thing. A grim war story
+   is Potentially positive for gold; a rosy growth story can hurt bond funds. */
+const CONTRA={
+ "Gold & safety":"flights to safety reward gold and silver regardless of the grim mood",
+ "Geopolitics & defence":"crisis headlines can pull money into defence contractors",
+ "Volatility":"the fear gauge typically spikes hardest when everything else falls",
+ "Consumer staples":"defensive staples usually hold up better while markets wobble",
+ "Utilities":"defensive utilities often cushion the fall when the mood sours",
+ "Bonds & yields":"strong growth can be good news overall yet bad news for bond prices"
+};
+function contraHTML(s,t,ass,rule){
+  const mt=marketToneOf(s.title);
+  if(ass.tone===0||mt===0||mt===ass.tone)return "";
+  const from=mt>0?"positive":"negative", to=ass.tone>0?"Potentially positive":"Potentially negative";
+  const wh=CONTRA[rule&&rule.label]||"funds absorb the same event differently depending on what they hold";
+  return `<p class="small" style="margin:4px 0 0;color:var(--muted)">${App.ic("alert")} <b>Mood ≠ effect:</b> this story reads ${from} for markets overall, but for ${t} it is <b>${to}</b> — ${wh}.</p>`;
+}
+function chipHTML(ass,conf,direct){
+  let pill;
+  if(ass.tone>0)pill='<span class="pill up">'+App.ic("up")+'Potentially positive</span>';
+  else if(ass.tone<0)pill='<span class="pill down">'+App.ic("down")+'Potentially negative</span>';
+  else if(ass.mix)pill='<span class="pill flat">'+App.ic("flat")+'Mixed signals</span>';
+  else pill='<span class="pill flat">'+App.ic("flat")+'Unclear</span>';
+  return pill+' <span class="pill '+(conf[0]==="High"?"up":conf[0]==="Medium"?"info":"flat")+'">'+conf[0]+' confidence</span>';
+}
+function confFor(t,direct,ass,rule){
+  const named=direct?[t+" named in the headline"]:[];
+  if(ass.tone!==0){
+    const inMap=rule&&rule.tick&&rule.tick.indexOf(t)>=0;
+    const lvl=direct?"High":inMap?"High":"Medium";
+    const ev=named.concat(["explicit direction words in the headline",
+      direct?"":"linked via the "+((rule&&rule.label))+" theme"]).filter(Boolean);
+    return [lvl,"Evidence: "+ev.join(" · ")];
+  }
+  if(ass.mix)return [direct?"Medium":"Low","Evidence: "+named.filter(Boolean).concat(["both bullish and bearish cues present"]) .join(" · ")||( "Evidence: conflicting cues in the headline")];
+  return ["Low","Evidence: "+(rule?"connected only via the "+rule.label+" theme — no explicit direction word":"the story "+t+"mentions have no clear direction cue")];
+}
+function channelFor(t,direct,rule){
+  if(direct)return "Direct exposure — the article itself references the fund";
+  if(rule&&rule.tick&&rule.tick.indexOf(t)>=0)return "Sector exposure — "+t+" is listed among this theme's typical movers ("+rule.tick.slice(0,3).join(", ")+")";
+  return "Broader macro/sector sensitivity — the story reaches "+t+" through the wider market";
+}
+/* Story timestamp: absolute local + relative ("3 h ago") */
+function when(s){ if(!s)return "";
+  try{
+    const d=new Date(s); if(isNaN(d.getTime()))return s;
+    const mins=Math.round((Date.now()-d.getTime())/60000);
+    const rel=mins<2?"just now":mins<60?mins+" min ago":mins<1440?Math.round(mins/60)+" h ago":Math.round(mins/1440)+" d ago";
+    return d.toLocaleString(undefined,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+" · "+rel;
+  }catch(e){return s;}
 }
 const DIRS={
  "Rates & inflation":{up:["rate cut","cuts rates","dovish","pause","cooling","cools","soft landing","eases","slows","softer","below forecast","below estimates"],down:["rate hike","hikes","hawkish","hot","sticky","deficit","downgrade","prices jumped","prices rose","prices climb","prices rise","inflation jumped","inflation rose","hot inflation","accelerat"]},
@@ -183,20 +242,27 @@ function groupHTML(gr,t,explained){
   explained=explained||{};
   const ef=App.universe().find(e=>e.t===t)||{t:t,c:""};
   const lens=lensFor(ef);
+  const tRe=new RegExp("\\b"+t+"\\b","i");
   return gr.map(g=>{
     let why=g.rule?g.rule.why:(`Names ${t} directly — check it against the drivers above (rates, earnings, flows, holdings). Pieces with no new facts are usually sentiment noise and rarely move the price.`);
     if(lens)why+=" "+lens;
+    const anyDirect=g.items.some(s=>tRe.test(s.title));
+    const channel=g.rule?channelFor(t,anyDirect,g.rule):(anyDirect?"Direct exposure — the article itself references the fund":"General-market context");
     const rows=g.items.map(s=>{
-      const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div>`;
-      const desc=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
-      const dr=toneOf(s.title,g.rule);
-      const chip=dr>0?' <span class="pill up">'+App.ic("up")+'likely up</span>':dr<0?' <span class="pill down">'+App.ic("down")+'likely down</span>':' <span class="pill flat">'+App.ic("flat")+'neutral</span>';
-      return `<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a>${chip}${meta}${desc}</div>`;}).join("");
-    const head=`<div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"}</span></div>`;
+      const direct=tRe.test(s.title);
+      const ass=assess(s.title,g.rule);
+      const conf=confFor(t,direct,ass,g.rule);
+      const chanTxt=direct&&g.rule?`channel: direct exposure (the article names ${t}) · `:`channel: ${channel} · `;
+      const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+when(s.date)):""}</div>`;
+      const desc2=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
+      const confLine=`<p class="small" style="margin:4px 0 0;color:var(--muted)">${App.ic("search")} ${chanTxt}<b>${conf[0]} confidence</b> — ${conf[1]}.</p>`;
+      const contra=contraHTML(s,t,ass,g.rule);
+      return `<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a> ${chipHTML(ass,conf,direct)}${meta}${desc2}${confLine}${contra}</div>`;}).join("");
+    const head=`<div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"} · channel: ${channel}</span></div>`;
     if(explained[g.label])return `<div class="story">${head}<p class="small muted" style="margin:4px 0 0">Same dynamic as above — more evidence, same read.</p>${rows}</div>`;
     explained[g.label]=1;
     return `<div class="story">${head}
-      <p class="small" style="margin:6px 0"><b>What it means for ${t}:</b> ${why}</p>${rows}</div>`;
+      <p class="small" style="margin:6px 0"><b>Why it may matter for ${t}:</b> ${why}</p>${rows}</div>`;
   }).join("");
 }
 function readOutHTML(scored,t,momo){
@@ -205,7 +271,7 @@ function readOutHTML(scored,t,momo){
   const pos=scored.filter(x=>x.tone>0).length, neg=scored.filter(x=>x.tone<0).length, neu=scored.length-pos-neg;
   let votes=0;
   scored.forEach(x=>{votes+=x.tone>0?(x.direct?2:1):x.tone<0?(x.direct?-2:-1):0;});
-  const v=votes>=2?[App.ic("up")+" Leans positive","u"]:votes<=-2?[App.ic("down")+" Leans negative","d"]:[App.ic("flat")+" Mixed / neutral","n"];
+  const v=votes>=2?[App.ic("up")+" Net read: Potentially positive","u"]:votes<=-2?[App.ic("down")+" Net read: Potentially negative","d"]:[App.ic("flat")+" Net read: Mixed / unclear","n"];
   const byth={};
   themed.forEach(x=>{const k=(x.x.m[0]&&x.x.m[0].label)||"General market";
     if(!byth[k])byth[k]={n:0,up:0,dn:0};byth[k].n++;if(x.tone>0)byth[k].up++;if(x.tone<0)byth[k].dn++;});
@@ -221,6 +287,10 @@ function readOutHTML(scored,t,momo){
     items.push(`<b>What's moving it today:</b> no theme match — all signals reference ${t} directly or stay at the general-market level.`);
   }
   if(direct.length)items.push(`<b>Direct signals:</b> ${direct.length} ${direct.length===1?"story":"stories"} name ${t} in the headline — they carry double weight in the verdict.`);
+  if(momo&&momo.hist){
+    const H=momo.hist;
+    items.push(`<b>Historical context (from this fund's own daily price history — description, not proof):</b> over its published history it swung ±2% or more on ${H.big} sessions out of ${H.n}; the sharpest single day was ${H.dn.pct} on ${H.dn.date} and the strongest ${H.up.pct} on ${H.up.date}; a typical session moves about ±${H.sd}%.`);
+  }
   if(momo){
     const f=vv=>((vv>=0?"+":"")+(vv*100).toFixed(1)+"%");
     const tape=momo.mtd>0.005?"up":momo.mtd<-0.005?"down":"flat";
@@ -247,7 +317,21 @@ async function momentumOf(t){
     let s50=0; for(let k=closes.length-50;k<closes.length;k++)s50+=closes[k]; s50/=50;
     let s=5+(mtd>0?1:-1)+(m1>0?1:-1)+(px>s50?1:-1);
     s+=(mtd>0.02?1:mtd<-0.02?-1:0)+(m1>0.05?1:m1<-0.05?-1:0);
-    return {mtd:mtd,m1:m1,above:px>s50,s:Math.max(0,Math.min(10,Math.round(s)))};
+    // historical context from the same daily series (factual, no opinion)
+    let big=0, upP=-1, dnP=1, upD="", dnD="", varSum=0, varN=0;
+    for(let k=1;k<rows.length;k++){
+      const p=parseFloat(rows[k][1])/parseFloat(rows[k-1][1])-1;
+      if(isNaN(p))continue;
+      varSum+=p*p; varN++;
+      if(p>=0.02||p<=-0.02)big++;
+      if(p>upP){upP=p;upD=rows[k][0];}
+      if(p<dnP){dnP=p;dnD=rows[k][0];}
+    }
+    const hist=varN>60?{n:varN,big:big,
+      up:{pct:("+")+(upP*100).toFixed(1)+"%",date:upD},
+      dn:{pct:((dnP*100).toFixed(1)+"%"),date:dnD},
+      sd:(Math.sqrt(varSum/varN)*100).toFixed(1)}:null;
+    return {mtd:mtd,m1:m1,above:px>s50,s:Math.max(0,Math.min(10,Math.round(s))),hist:hist};
   }catch(e){return null;}
 }
 function monthScoreHTML(momo){
@@ -275,10 +359,12 @@ async function renderETFNews(t){
     if(tRe.test(x.s.title))return true;
     return x.m.some(r=>labels.indexOf(r.label)>=0);
   });
-  const scored=hits.concat(witems).map(x=>({
-    x:x,
-    tone:toneOf(x.s.title,x.m[0]||null),
-    direct:new RegExp("\\b"+t+"\\b","i").test(x.s.title)}));
+  const scored=hits.concat(witems).map(x=>{
+    const ass=assess(x.s.title,x.m[0]||null);
+    return {x:x,
+      tone:ass.tone,
+      mix:ass.mix,
+      direct:new RegExp("\\b"+t+"\\b","i").test(x.s.title)}});
   const explained={};
   const seen={};
   hits.forEach(x=>{seen[x.s.title.trim().toLowerCase()]=1;});
@@ -300,7 +386,7 @@ async function renderETFNews(t){
   }else if(witems.length){
     html+=`<p class="small muted">The web scan found only stories already covered in the live feed above.</p>`;
   }else{
-    html+=`<p class="small muted">No dedicated web stories for ${t} in this scan — it rescans all 500 ETFs daily, so check back tomorrow.</p>`;
+    html+=`<p class="small muted">No dedicated web stories for ${t} in this scan — the full universe (every ≈500 ETFs) is rescanned each evening, so check back tomorrow.</p>`;
   }
   box.innerHTML=html;
   try{localStorage.setItem("pira-etf",t);}catch(e){}

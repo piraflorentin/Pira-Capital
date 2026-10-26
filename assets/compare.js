@@ -79,7 +79,7 @@ function draw(){
   });
   cv._geom={A,X,Y,pad,iw,ih,W,H,mn,mx};
   $("#legend").innerHTML=A.map(a=>`<span><i style="background:${a.color}"></i><b>${a.t}</b> ${a.n} · <b class="${a.st.ret>=0?"pos":"neg"}">${fmtPct(a.st.ret*100)}</b></span>`).join("");
-  $("#chart-note").textContent=`${A.map(a=>a.t).join(" · ")} — ${S.range} · rebased to 100 at period start · price return.`;
+  $("#chart-note").textContent=`${A.map(a=>a.t).join(" · ")} — ${S.range} · rebased to 100 at period start · price return (dividends NOT included — the source doesn't publish distribution history, so a total-return view isn't supported).`;
   cv.onmousemove=ev=>{
     const r=cv.getBoundingClientRect(),mx2=ev.clientX-r.left,g=cv._geom; if(!g)return;
     const a=g.A[0]; if(!a)return;

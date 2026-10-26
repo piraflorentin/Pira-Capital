@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pira Capital — ETF Observatory | Top 500 ETFs, live prices</title>
-<meta name="description" content="Track the 500 largest US-listed ETFs with live prices and daily performance. Compare, follow news and explore forecasts.">
+<title>Pira Capital — ETF Observatory | Largest US-listed ETFs, live prices</title>
+<meta name="description" content="Track the largest US-listed ETFs with live prices and daily performance. Compare, follow news and explore historical scenarios.">
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -20,8 +20,8 @@
 </div></header>
 
 <section class="hero"><div class="wrap">
-  <h1>The 500 largest ETFs, <span class="gold">live every day</span></h1>
-  <p class="sub">Current price and daily performance for the 500 biggest US-listed ETFs — from S&amp;P 500 trackers to bonds, gold, sectors and leveraged funds. Data refreshes automatically: live quotes on every visit, history rebuilt daily.</p>
+  <h1>The largest US-listed ETFs, <span class="gold">live every day</span></h1>
+  <p class="sub">Current price and daily performance for <span id="ncount">494</span> curated biggest US-listed ETFs — from S&amp;P 500 trackers to bonds, gold, sectors and leveraged funds. Data refreshes automatically: live quotes on every visit, history rebuilt daily.</p>
   <div class="kpis" id="kpis">
     <div class="kpi"><div class="k">S&amp;P 500 · SPY</div><div class="v" id="k-spy">…</div><div class="s" id="k-spy-s">loading</div></div>
     <div class="kpi"><div class="k">Nasdaq 100 · QQQ</div><div class="v" id="k-qqq">…</div><div class="s" id="k-qqq-s">loading</div></div>
@@ -60,7 +60,7 @@
 
   <div class="card grid2">
     <div><h2>How this page stays current</h2><p class="muted small">Prices and daily changes load <b>live from CNBC market data</b> every time you open the page (auto-refresh every 30 seconds while open). Five-year history files used on the Compare and Forecast pages are rebuilt <b>every weekday after the US close</b> by an automated job from Nasdaq market data. No manual updates, no stale tables.</p></div>
-    <div><h2>Sources</h2><p class="muted small">Quotes: CNBC Quote API · History: Nasdaq Historical API · Fund facts: issuer factsheets (linked per fund) · News: GDELT + Federal Reserve, ECB, IMF. Universe: 500 largest US-listed ETFs, curated Oct 2026 — prices, volumes and market caps stream live; the membership list itself is reviewed periodically, not daily. Read the <a href="news.html">Today's News</a> page for how headlines map to ETF moves.</p></div>
+    <div><h2>Sources</h2><p class="muted small">Quotes: CNBC Quote API · History: Nasdaq Historical API · Fund facts: issuer factsheets (linked per fund) · News: Federal Reserve, ECB + CNBC and a per-ETF web scan. Universe: the largest US-listed ETFs — a curated list started in Oct 2026 and reviewed weekly (the exact count is shown above the table; ≈500 funds). Prices, volumes and market caps stream live; the membership list itself is reviewed periodically, not daily. Read the <a href="news.html">Today's News</a> page for how headlines map to ETF moves.</p></div>
   </div>
 </main>
 
