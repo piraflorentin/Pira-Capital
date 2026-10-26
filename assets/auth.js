@@ -60,7 +60,7 @@ function shell(){
 }
 function paint(){
   const b=document.querySelector("#acct"); if(!b)return;
-  b.textContent=user?("👤 "+(user.email||"Account")):"Log in";
+  b.innerHTML=user?(App.ic("user")+" "+(user.email||"Account").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")):"Log in";
   b.onclick=e=>{e.preventDefault();openAuth();};
 }
 function openAuth(){

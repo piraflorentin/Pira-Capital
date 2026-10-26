@@ -8,7 +8,7 @@ const S={page:0,q:"",cat:"",dir:"",sort:"pct",list:universe(),quotes:{},allLoade
   favs:new Set(JSON.parse(localStorage.getItem("pira-favs")||"[]"))};
 function saveFavs(){try{localStorage.setItem("pira-favs",JSON.stringify([...S.favs]));}catch(e){}}
 function starBtn(t){const on=S.favs.has(t);
-  return `<button data-fav="${t}" title="${on?"Remove from":"Add to"} favorites" style="border:none;background:none;font-size:1.15rem;cursor:pointer">${on?"★":"☆"}</button>`;}
+  return `<button data-fav="${t}" class="favb ${on?"on":""}" title="${on?"Remove from":"Add to"} favorites"><svg class="ic" aria-hidden="true"><use href="#${on?"ic-star-f":"ic-star"}"></use></svg></button>`;}
 
 function mcapNum(s){ if(!s)return NaN; const m=String(s).replace(/,/g,"").match(/([\d.]+)\s*([TBMK]?)/i); if(!m)return NaN;
   const f={T:1e12,B:1e9,M:1e6,K:1e3,"":1}; return parseFloat(m[1])*(f[(m[2]||"").toUpperCase()]||1); }
@@ -87,7 +87,7 @@ async function renderAlertBox(){
   const box=$("#alertbox"); if(!box)return;
   const A=window.AuthSync;
   if(!A||!A.enabled||!A.user){
-    box.innerHTML=`<p class="small muted">🔔 <b>Email alerts are coming:</b> log in to get notified when a favorite moves a lot or makes the news.</p>`;
+    box.innerHTML=`<p class="small muted">${App.ic("bell")} <b>Email alerts are coming:</b> log in to get notified when a favorite moves a lot or makes the news.</p>`;
     return;
   }
   let p={min_move_pct:2,price_alerts:true,news_alerts:true};
@@ -96,7 +96,7 @@ async function renderAlertBox(){
     if(r.data)p=Object.assign(p,r.data);
   }catch(e){}
   box.innerHTML=`<div class="controls" style="margin-top:0">
-      <span class="small"><b>🔔 Email alerts to ${A.user.email}:</b></span>
+      <span class="small"><b>${App.ic("bell")} Email alerts to ${A.user.email}:</b></span>
       <label class="small">Big move <select id="apct">
         ${[1,2,3,5].map(v=>`<option value="${v}"${+p.min_move_pct===v?" selected":""}>±${v}%</option>`).join("")}
       </select></label>
@@ -134,9 +134,9 @@ function openModal(t){
       <div><small>Risk class (SRI 1–7)</small><b data-risk="sri">…</b></div>
       <div><small>Volatility (ann.)</small><b data-risk="vol">…</b></div>
     </div>
-    <p><a class="btn" href="${cnbcLink(e.t)}" target="_blank" rel="noopener">Live quote on CNBC ↗</a>
-    ${iss?` <a class="btn ghost" href="${iss}" target="_blank" rel="noopener">Issuer factsheet ↗</a>`:""}
-    <button class="btn ghost" id="mfav">${S.favs.has(e.t)?"★ Favorited":"☆ Add to favorites"}</button></p>
+    <p><a class="btn" href="${cnbcLink(e.t)}" target="_blank" rel="noopener">${App.ic("ext")} Live quote on CNBC</a>
+    ${iss?` <a class="btn ghost" href="${iss}" target="_blank" rel="noopener">${App.ic("ext")} Issuer factsheet</a>`:""}
+    <button class="btn ghost" id="mfav">${App.ic(S.favs.has(e.t)?"star-f":"star")} ${S.favs.has(e.t)?"Favorited":"Add to favorites"}</button></p>
     <p class="small muted">Price return shown. Distributions/dividends are not included in day %. Figures stream live from market data; history powers the <a href="compare.html">Compare</a> and <a href="forecast.html">Forecast</a> pages.</p>`;
   $("#modal").classList.add("open");
   $("#mfav").addEventListener("click",()=>{toggleFav(t);openModal(t);});

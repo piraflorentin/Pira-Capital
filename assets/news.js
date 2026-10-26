@@ -190,7 +190,7 @@ function groupHTML(gr,t,explained){
       const meta=`<div class="meta">${s.outlet?(" · "+s.outlet):""}${s.date?(" · "+s.date):""}</div>`;
       const desc=s.desc?`<p class="small muted" style="margin:4px 0 0">${s.desc}</p>`:"";
       const dr=toneOf(s.title,g.rule);
-      const chip=dr>0?' <span class="pill up">▲ likely up</span>':dr<0?' <span class="pill down">▼ likely down</span>':' <span class="pill flat">• neutral</span>';
+      const chip=dr>0?' <span class="pill up">'+App.ic("up")+'likely up</span>':dr<0?' <span class="pill down">'+App.ic("down")+'likely down</span>':' <span class="pill flat">'+App.ic("flat")+'neutral</span>';
       return `<div style="padding:7px 0;border-top:1px solid var(--line)"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a>${chip}${meta}${desc}</div>`;}).join("");
     const head=`<div class="meta"><span class="pill info">${g.label}</span> <span class="muted">· ${g.items.length} ${g.items.length===1?"story":"stories"}</span></div>`;
     if(explained[g.label])return `<div class="story">${head}<p class="small muted" style="margin:4px 0 0">Same dynamic as above — more evidence, same read.</p>${rows}</div>`;
@@ -205,7 +205,7 @@ function readOutHTML(scored,t,momo){
   const pos=scored.filter(x=>x.tone>0).length, neg=scored.filter(x=>x.tone<0).length, neu=scored.length-pos-neg;
   let votes=0;
   scored.forEach(x=>{votes+=x.tone>0?(x.direct?2:1):x.tone<0?(x.direct?-2:-1):0;});
-  const v=votes>=2?["🟢 Leans positive","pos"]:votes<=-2?["🔴 Leans negative","neg"]:["⚪ Mixed / neutral",""];
+  const v=votes>=2?[App.ic("up")+" Leans positive","u"]:votes<=-2?[App.ic("down")+" Leans negative","d"]:[App.ic("flat")+" Mixed / neutral","n"];
   const byth={};
   themed.forEach(x=>{const k=(x.x.m[0]&&x.x.m[0].label)||"General market";
     if(!byth[k])byth[k]={n:0,up:0,dn:0};byth[k].n++;if(x.tone>0)byth[k].up++;if(x.tone<0)byth[k].dn++;});
@@ -228,10 +228,10 @@ function readOutHTML(scored,t,momo){
     const clash=(votes>=2&&tape==="down")||(votes<=-2&&tape==="up");
     items.push(`<b>Price check:</b> ${f(momo.mtd)} this month, ${momo.above?"above":"below"} its 50-day average${agree?" — news tone agrees with the tape.":clash?" — news tone and price trend disagree; one usually gives in within days.":`, while the tape is ${tape}.`}`);
   }
-  return `<div class="box base" style="border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#eef4ff;margin:10px 0">
-    <b>${v[0]} for ${t}</b> <span class="small muted">— weighted read across ${scored.length} stories (${pos} ▲ · ${neg} ▼ · ${neu} • · direct mentions weigh double).</span>
-    <ul class="small" style="margin:8px 0 0;padding-left:18px">${items.map(i=>`<li style="margin:4px 0">${i}</li>`).join("")}</ul>
-    <div class="small muted" style="margin-top:6px">Keyword-based gauge from ${t}'s own theme map, not advice: one major story can outweigh several small ones, and markets often price news in before you read it.</div></div>`;
+  return `<div class="note ${v[1]} small" style="margin:10px 0">
+    <b style="font-size:.95rem">${v[0]} for ${t}</b> <span class="muted">— weighted read across ${scored.length} stories (${pos} ▲ · ${neg} ▼ · ${neu} • · direct mentions weigh double).</span>
+    <ul class="small">${items.map(i=>`<li>${i}</li>`).join("")}</ul>
+    <span class="small muted">Keyword-based gauge from ${t}'s own theme map, not advice: one major story can outweigh several small ones, and markets often price news in before you read it.</span></div>`;
 }
 async function momentumOf(t){
   try{
@@ -254,7 +254,7 @@ function monthScoreHTML(momo){
   if(!momo)return "";
   const f=v=>((v>=0?"+":"")+(v*100).toFixed(1)+"%");
   const mood=momo.s>=7?"strong month":momo.s>=4?"steady":"weak month";
-  return `<div style="border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#f6f8fb;margin:10px 0"><b>📊 Month score ${momo.s}/10</b> <span class="small muted">— ${mood}: MTD ${f(momo.mtd)} · 1M ${f(momo.m1)} · ${momo.above?"above":"below"} 50-day avg. Pure price-momentum gauge, recomputed automatically every day — not advice.</span></div>`;
+  return `<div class="note n small" style="margin:10px 0"><b style="font-size:.95rem">${App.ic("gauge")} Month score ${momo.s}/10</b> <span class="muted">— ${mood}: MTD ${f(momo.mtd)} · 1M ${f(momo.m1)} · ${momo.above?"above":"below"} 50-day avg. Pure price-momentum gauge, recomputed automatically every day — not advice.</span></div>`;
 }
 async function renderETFNews(t){
   const box=$("#etfnews");
@@ -263,7 +263,7 @@ async function renderETFNews(t){
   const labels=found.rs.map(r=>r.label);
   const drivers=found.rs.length?found.rs.map(r=>r.label).join(" · "):"general market";
   const warn=(["Leveraged Bull","Inverse Bear","Volatility"].indexOf(found.e.c)>=0)
-    ?`<p class="small" style="margin:6px 0;padding:8px 12px;background:#fdf6e3;border:1px solid #ecd9a0;border-radius:9px">⚠️ <b>Daily-reset product:</b> leverage and futures decay make multi-day moves diverge from the underlying — size accordingly.</p>`:"";
+    ?`<p class="note small" style="margin:6px 0;background:#fdf3d7;border-color:#ecd390">${App.ic("alert")} <b>Daily-reset product:</b> leverage and futures decay make multi-day moves diverge from the underlying — size accordingly.</p>`:"";
   box.innerHTML=`<p><b>${found.e.t} — ${found.e.n}</b> <span class="pill info">${found.e.c}</span></p>
     <p class="small muted">This fund typically reacts to: <b>${drivers}</b>. Gathering matches…</p>`;
   const hits=LIVE_ITEMS.map(s=>({s,m:storyForETF(s,labels)})).filter(x=>x.m.length);
@@ -289,13 +289,13 @@ async function renderETFNews(t){
   html+=readOutHTML(scored,t,momo);
   html+=monthScoreHTML(momo);
   if(hits.length){
-    html+=`<h3 style="margin-top:10px">📰 From the live feed <span class="pill info">${hits.length} of ${LIVE_ITEMS.length}</span></h3>`;
+    html+=`<h3 style="margin-top:10px;display:flex;align-items:center;gap:7px">${App.ic("feed")} From the live feed <span class="pill info">${hits.length} of ${LIVE_ITEMS.length}</span></h3>`;
     html+=groupHTML(groupByLabel(hits),t,explained);
   }else{
     html+=`<p class="small muted">No live-feed headline directly targets ${found.e.t} right now — the stories below still apply indirectly (broad moves lift or drag almost everything).</p>`;
   }
   if(fresh.length){
-    html+=`<h3 style="margin-top:14px">🌐 Across the web: latest on ${t} <span class="pill info">scanned daily · ${web.asof}</span></h3>`;
+    html+=`<h3 style="margin-top:14px;display:flex;align-items:center;gap:7px">${App.ic("globe")} Across the web: latest on ${t} <span class="pill info">scanned · ${web.asof}</span></h3>`;
     html+=groupHTML(groupByLabel(fresh),t,explained);
   }else if(witems.length){
     html+=`<p class="small muted">The web scan found only stories already covered in the live feed above.</p>`;

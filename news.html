@@ -25,7 +25,7 @@
 </div></section>
 
 <main class="wrap">
-  <div class="card"><h2>🔎 News for my ETF <span class="pill info">pick a fund, see only what moves it</span></h2>
+  <div class="card"><h2><svg class="ic"><use href="#ic-search"></use></svg> News for my ETF <span class="pill info">pick a fund, see only what moves it</span></h2>
     <div class="controls">
       <input type="search" id="etfq" list="etf-list" placeholder="Type a ticker — e.g. TLT, QQQ, GLD">
       <datalist id="etf-list"></datalist>
@@ -35,13 +35,13 @@
     <div id="etfnews"><p class="muted small">Choose one of your ETFs above and this week's headlines will be filtered to the stories that typically move it — with an explanation per story.</p></div>
   </div>
 
-  <div class="card"><h2>🔴 Live market headlines <span class="pill info">CNBC · updates on every visit</span> <button class="btn ghost" id="newsrefresh" style="padding:6px 12px;font-size:.8rem">↻ Refresh</button></h2>
+  <div class="card"><h2><span class="led"></span> Live market headlines <span class="pill info">CNBC · updates on every visit</span> <button class="btn ghost" id="newsrefresh" style="padding:6px 12px;font-size:.8rem"><svg class="ic"><use href="#ic-redo"></use></svg> Refresh</button></h2>
     <div id="live"><p class="muted">Loading live headlines…</p></div>
   </div>
 
   <div class="grid2">
-    <div class="card"><h2>🏛 Federal Reserve <span class="pill info">official · daily snapshot</span></h2><div id="fed"><p class="muted">Loading…</p></div></div>
-    <div class="card"><h2>🏛 European Central Bank <span class="pill info">official · daily snapshot</span></h2><div id="ecb"><p class="muted">Loading…</p></div></div>
+    <div class="card"><h2><svg class="ic"><use href="#ic-bank"></use></svg> Federal Reserve <span class="pill info">official · daily snapshot</span></h2><div id="fed"><p class="muted">Loading…</p></div></div>
+    <div class="card"><h2><svg class="ic"><use href="#ic-bank"></use></svg> European Central Bank <span class="pill info">official · daily snapshot</span></h2><div id="ecb"><p class="muted">Loading…</p></div></div>
   </div>
 
   <div class="card"><h2>How headlines move ETFs — the transmission map</h2>
@@ -64,12 +64,12 @@
 
   <div class="card"><h2>Primary sources — read it yourself</h2>
     <div class="srcs">
-      <div class="src"><b>US Federal Reserve</b><br><a href="https://www.federalreserve.gov/monetarypolicy.htm" target="_blank" rel="noopener">Monetary policy ↗</a> · <a href="https://www.federalreserve.gov/newsevents/pressreleases.htm" target="_blank" rel="noopener">Press releases ↗</a></div>
-      <div class="src"><b>European Central Bank</b><br><a href="https://www.ecb.europa.eu/press/html/index.en.html" target="_blank" rel="noopener">Press corner ↗</a></div>
-      <div class="src"><b>IMF</b><br><a href="https://www.imf.org/en/Publications/WEO" target="_blank" rel="noopener">World Economic Outlook ↗</a></div>
-      <div class="src"><b>Bank for Intl Settlements</b><br><a href="https://www.bis.org/" target="_blank" rel="noopener">bis.org ↗</a></div>
-      <div class="src"><b>US Labor data (BLS)</b><br><a href="https://www.bls.gov/" target="_blank" rel="noopener">bls.gov ↗</a></div>
-      <div class="src"><b>Company filings (SEC)</b><br><a href="https://www.sec.gov/edgar/searchedgar/companysearch" target="_blank" rel="noopener">EDGAR search ↗</a></div>
+      <div class="src"><b>US Federal Reserve</b><br><a href="https://www.federalreserve.gov/monetarypolicy.htm" target="_blank" rel="noopener">Monetary policy <svg class="ic" style="color:#9aa7bd"><use href="#ic-ext"></use></svg></a> · <a href="https://www.federalreserve.gov/newsevents/pressreleases.htm" target="_blank" rel="noopener">Press releases <svg class="ic" style="color:#9aa7bd"><use href="#ic-ext"></use></svg></a></div>
+      <div class="src"><b>European Central Bank</b><br><a href="https://www.ecb.europa.eu/press/html/index.en.html" target="_blank" rel="noopener">Press corner <svg class="ic" style="color:#9aa7bd"><use href="#ic-ext"></use></svg></a></div>
+      <div class="src"><b>IMF</b><br><a href="https://www.imf.org/en/Publications/WEO" target="_blank" rel="noopener">World Economic Outlook <svg class="ic" style="color:#9aa7bd"><use href="#ic-ext"></use></svg></a></div>
+      <div class="src"><b>Bank for Intl Settlements</b><br><a href="https://www.bis.org/" target="_blank" rel="noopener">bis.org <svg class="ic" style="color:#9aa7bd"><use href="#ic-ext"></use></svg></a></div>
+      <div class="src"><b>US Labor data (BLS)</b><br><a href="https://www.bls.gov/" target="_blank" rel="noopener">bls.gov <svg class="ic" style="color:#9aa7bd"><use href="#ic-ext"></use></svg></a></div>
+      <div class="src"><b>Company filings (SEC)</b><br><a href="https://www.sec.gov/edgar/searchedgar/companysearch" target="_blank" rel="noopener">EDGAR search <svg class="ic" style="color:#9aa7bd"><use href="#ic-ext"></use></svg></a></div>
     </div>
   </div>
 </main>

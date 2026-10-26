@@ -87,5 +87,27 @@ function marketNote(){
   return open?"US market open — quotes live":"US market closed — showing last close";
 }
 
-window.App={$,$$,universe,categories,fmt$,fmtPct,fmtN,pill,toast,debounce,num,getQuotes,getHistory,issuerFor,cnbcLink,nav,stamp,marketNote};
+/* ---------- icon set (monochrome, stroke-based, colored via CSS) ---------- */
+const SPRITE='<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">'
+ +'<defs><g id="ic-s" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g></defs>'
+ +'<symbol id="ic-star" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.4l2.6 5.2 5.8.9-4.2 4.1 1 5.8L12 16.7l-5.2 2.7 1-5.8L3.6 9.5l5.8-.9z"/></g></symbol>'
+ +'<symbol id="ic-star-f" viewBox="0 0 24 24"><path d="M12 3.4l2.6 5.2 5.8.9-4.2 4.1 1 5.8L12 16.7l-5.2 2.7 1-5.8L3.6 9.5l5.8-.9z" fill="currentColor"/></symbol>'
+ +'<symbol id="ic-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 0 1 12 0v4.2l1.8 2.8H4.2L6 13.7z"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></g></symbol>'
+ +'<symbol id="ic-gauge" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 15.5a7.5 7.5 0 1 1 15 0"/><path d="M12 15.5l3.8-4.4"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><path d="M3.5 20h17"/></g></symbol>'
+ +'<symbol id="ic-feed" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="15" rx="2.5"/><path d="M7.5 9h5M7.5 12.5h9M7.5 16h9"/></g></symbol>'
+ +'<symbol id="ic-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c3.2 2.9 3.2 13.1 0 17-3.2-2.9-3.2-14.1 0-17z"/></g></symbol>'
+ +'<symbol id="ic-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5 21 19H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/></g></symbol>'
+ +'<symbol id="ic-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></g></symbol>'
+ +'<symbol id="ic-bank" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5 12 4l8 5.5"/><path d="M5.5 10v7.5M10 10v7.5M14 10v7.5M18.5 10v7.5"/><path d="M3.5 20h17"/></g></symbol>'
+ +'<symbol id="ic-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15.5 7H21v5.5"/></g></symbol>'
+ +'<symbol id="ic-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M15.5 17H21v-5.5"/></g></symbol>'
+ +'<symbol id="ic-flat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12h8"/></g></symbol>'
+ +'<symbol id="ic-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.75"/><path d="M5 20a7 7 0 0 1 14 0"/></g></symbol>'
+ +'<symbol id="ic-ext" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5"/><path d="M19 5l-8.5 8.5"/><path d="M10.5 5.5H6.5A2.5 2.5 0 0 0 4 8v9.5A2.5 2.5 0 0 0 6.5 20H16a2.5 2.5 0 0 0 2.5-2.5v-4"/></g></symbol>'
+ +'<symbol id="ic-redo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3.5v5h-5"/><path d="M20.5 12.5A8.5 8.5 0 1 1 14 4.2"/></g></symbol>'
+ +'</svg>';
+function ic(name){return '<svg class="ic" aria-hidden="true"><use href="#ic-'+name+'"></use></svg>';}
+
+window.App={$,$$,universe,categories,fmt$,fmtPct,fmtN,pill,toast,debounce,num,getQuotes,getHistory,issuerFor,cnbcLink,nav,stamp,marketNote,ic};
+try{document.body.insertAdjacentHTML("afterbegin",SPRITE);}catch(e){}
 })();
